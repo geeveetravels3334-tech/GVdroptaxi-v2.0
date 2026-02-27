@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geevee Travels - Tamilnadu Taxi Tours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Madurai:wght@300;400;500;600;700&family=Hind:wght@300;400;500;600;700&family=Noto+Sans+Telugu:wght@300;400;500;600;700;900&family=Noto+Sans+Kannada:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <script>
+      window.process = window.process || { env: {} };
+      
+      window.tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              geevee: {
+                orange: '#F37021',
+                dark: '#0a0a0a',
+                slate: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'Hind Madurai', 'Hind', 'Noto Sans Telugu', 'Noto Sans Kannada', 'sans-serif'],
+              tamil: ['Hind Madurai', 'sans-serif'],
+              hindi: ['Hind', 'sans-serif'],
+              telugu: ['Noto Sans Telugu', 'sans-serif'],
+              kannada: ['Noto Sans Kannada', 'sans-serif']
+            },
+            animation: {
+              'subtle-zoom': 'zoomIn 20s ease-out forwards',
+              'float': 'float 6s ease-in-out infinite',
+              'slide-up': 'slideUp 0.6s ease-out forwards',
+              'pulse-soft': 'pulseSoft 3s ease-in-out infinite',
+              'blob': 'blob 10s infinite',
+            },
+            keyframes: {
+              pulseSoft: {
+                '0%, 100%': { opacity: 1, transform: 'scale(1)' },
+                '50%': { opacity: 0.8, transform: 'scale(1.02)' },
+              },
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Hind Madurai', 'Hind', 'Noto Sans Telugu', 'Noto Sans Kannada', sans-serif;
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #F37021;
+          border-radius: 10px;
+          border: 2px solid #0a0a0a;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark .glass-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animation delays */
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+
+        /* Print Styles */
+        @media print {
+          nav, footer, button, .no-print, .ai-trigger, #floating-ai {
+            display: none !important;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+            background: white;
+            color: black;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "firebase/app": "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js",
+    "path": "https://esm.sh/path@^0.12.7",
+    "zod": "https://esm.sh/zod@^4.3.6",
+    "@modelcontextprotocol/sdk/": "https://esm.sh/@modelcontextprotocol/sdk@^1.26.0/dist/esm/",
+    "octokit": "https://esm.sh/octokit@^5.0.5",
+    "better-sqlite3": "https://esm.sh/better-sqlite3@^12.6.2",
+    "firebase/": "https://esm.sh/firebase@^12.9.0/",
+    "firebase-admin": "https://esm.sh/firebase-admin@^13.6.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-50 dark:bg-[#0a0a0a] text-slate-900 dark:text-white">
+    <div id="root">
+        <!-- Loading State for Initial Render -->
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0a0a0a; color: white; font-family: sans-serif;">
+            <div style="text-align: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#F37021" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2" style="animation: spin 1s linear infinite; margin: 0 auto 16px auto;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                <h1 style="font-weight: 900; letter-spacing: 0.1em; font-size: 1.25rem;">GEEVEE TRAVELS</h1>
+            </div>
+            <style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>
+        </div>
+    </div>
+    <script type="module" src="./index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

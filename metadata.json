@@ -1,0 +1,7 @@
+{
+  "name": "Geevee Travels",
+  "description": "Premium outstation and local cab booking service in Tamil Nadu with fixed pricing, professional drivers, and 24/7 support.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
