@@ -26,8 +26,121 @@ import UserBookings from './components/UserBookings.tsx';
 import UserProfile from './components/UserProfile.tsx';
 import AllPackages from './components/AllPackages.tsx';
 import VerificationScreen from './components/VerificationScreen.tsx';
+import Preloader from './components/Preloader.tsx';
+import GoldParticles from './components/GoldParticles.tsx';
+import LiveBookingNotification from './components/LiveBookingNotification.tsx';
+import { ScrollReveal } from './components/ScrollReveal.tsx';
+import { motion, AnimatePresence } from 'motion/react';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
+import { PricingProvider } from './contexts/PricingContext.tsx';
+import { APIProvider } from '@vis.gl/react-google-maps';
+
+import WhatsAppBanner from './components/WhatsAppBanner.tsx';
+
+const API_KEY =
+  (import.meta as any).env?.VITE_GOOGLE_MAPS_PLATFORM_KEY ||
+  (import.meta as any).env?.GOOGLE_MAPS_PLATFORM_KEY ||
+  process.env.GOOGLE_MAPS_PLATFORM_KEY ||
+  '';
+
+const hasValidKey = Boolean(API_KEY) && API_KEY !== 'YOUR_API_KEY';
+
+const LiquidBackground = React.memo(() => (
+  <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+      {/* Signature Haze Glow */}
+      <div className="absolute top-[-10%] right-[-10%] w-[120%] h-[120%] opacity-20 dark:opacity-30 transition-opacity bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent"></div>
+      
+      {/* Ambient Pulsing Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-[#D4AF37]/5 blur-[80px] rounded-full"></div>
+  </div>
+));
+
+// Memoized main content sections to prevent unnecessary re-renders on scroll/theme changes
+const HomeSections = React.memo(({ onSelectPackage }: { onSelectPackage: (id: string | null) => void }) => {
+  return (
+    <>
+      <div id="home">
+        <Hero />
+      </div>
+      
+      <div className="container mx-auto px-4 md:px-8 max-w-7xl -mt-10 lg:-mt-32 relative z-20">
+        <BookingForm />
+      </div>
+
+      <section id="services">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <Services />
+        </ScrollReveal>
+      </section>
+
+      <section id="packages">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <TourPackagesSection onSelectPackage={onSelectPackage} />
+        </ScrollReveal>
+      </section>
+
+      <section id="why-choose-us">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <WhyChooseUs />
+        </ScrollReveal>
+      </section>
+
+      <section id="fleet">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <Fleet />
+        </ScrollReveal>
+      </section>
+
+      <section id="tariff">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <PricingTable id="tariff-anchor" />
+        </ScrollReveal>
+      </section>
+
+      <section id="airport">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <AirportTransfers id="airport-anchor" />
+        </ScrollReveal>
+      </section>
+
+      <section id="puducherry">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <PuducherrySpecial />
+        </ScrollReveal>
+      </section>
+
+      <section id="routes">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <div className="max-w-7xl mx-auto">
+              <PopularRoutes id="routes-anchor" />
+              <RouteList />
+          </div>
+        </ScrollReveal>
+      </section>
+
+      <section id="corporate">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <CorporateServices />
+        </ScrollReveal>
+      </section>
+
+      <section id="reviews">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <Testimonials />
+        </ScrollReveal>
+      </section>
+
+      <section id="terms">
+        <ScrollReveal delay={0.2} duration={0.8} direction="up">
+          <TermsAndConditions id="terms-anchor" />
+        </ScrollReveal>
+      </section>
+
+      <WhatsAppBanner />
+    </>
+  );
+});
 
 const AppContent: React.FC = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -37,10 +150,14 @@ const AppContent: React.FC = () => {
   // Auth state from context
   const { isAuthenticated, isVerified } = useAuth();
   
-  // Theme State
+  // Theme State - Dual Pearl & Navy Atmosphere
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    try {
+      const saved = localStorage.getItem('theme');
+      return saved !== 'light';
+    } catch {
+      return true;
+    }
   });
 
   // Security State
@@ -56,10 +173,10 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.remove('light');
     } else {
+      document.documentElement.classList.add('light');
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
 
@@ -114,7 +231,22 @@ const AppContent: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  const toggleDarkMode = () => {
+    setIsDarkMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('theme', next ? 'dark' : 'light');
+        if (next) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (err) {
+        console.error("Theme storage update failed", err);
+      }
+      return next;
+    });
+  };
 
   // Block access if user is logged in but not verified
   if (isAuthenticated && !isVerified) {
@@ -144,27 +276,12 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Background Component - The Liquid Gradient
-  const LiquidBackground = () => (
-    <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        {/* Base Color */}
-        <div className="absolute inset-0 bg-[#f8fafc] dark:bg-[#050505] transition-colors duration-500"></div>
-        
-        {/* Animated Orbs */}
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-400/30 dark:bg-purple-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 animate-blob"></div>
-        <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-cyan-400/30 dark:bg-cyan-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-10%] left-[20%] w-96 h-96 bg-pink-400/30 dark:bg-pink-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 animate-blob animation-delay-4000"></div>
-        <div className="absolute top-[40%] left-[40%] w-96 h-96 bg-geevee-orange/20 dark:bg-orange-600/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-60 animate-pulse-soft"></div>
-
-        {/* Noise Texture Overlay */}
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
-    </div>
-  );
-
   // Unified rendering structure
   return (
-    <div className={`min-h-screen ${fontClass || 'font-sans'} text-slate-900 dark:text-white transition-colors duration-500 relative`}>
+    <div className={`min-h-screen ${fontClass || 'font-sans'} text-slate-900 dark:text-white transition-colors duration-300 relative`}>
+      <Preloader />
       <LiquidBackground />
+      <GoldParticles />
       
       <div className="relative z-10">
         <Navbar 
@@ -176,77 +293,50 @@ const AppContent: React.FC = () => {
           toggleDarkMode={toggleDarkMode}
         />
         
-        {selectedPackageId ? (
-          <PackageView packageId={selectedPackageId} onBack={() => setSelectedPackageId(null)} />
-        ) : isAllPackagesOpen ? (
-          <AllPackages onSelectPackage={handleSelectPackage} onBack={() => setIsAllPackagesOpen(false)} />
-        ) : (
-          <main id="home">
-            <Hero />
-            
-            <div className="container mx-auto px-4 md:px-8 max-w-[1500px] -mt-10 lg:-mt-32 relative z-20">
-              <BookingForm />
-            </div>
+        <AnimatePresence mode="wait" initial={false}>
+          {selectedPackageId ? (
+            <motion.div
+              key={`package-${selectedPackageId}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <PackageView packageId={selectedPackageId} onBack={() => setSelectedPackageId(null)} />
+            </motion.div>
+          ) : isAllPackagesOpen ? (
+            <motion.div
+              key="all-packages"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <AllPackages onSelectPackage={handleSelectPackage} onBack={() => setIsAllPackagesOpen(false)} />
+            </motion.div>
+          ) : (
+            <motion.main
+              key="home-main"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <HomeSections onSelectPackage={handleSelectPackage} />
+            </motion.main>
+          )}
+        </AnimatePresence>
 
-            <section id="services" className="py-12 md:py-24">
-              <Services />
-            </section>
-
-            <section id="fleet" className="pb-12 md:pb-24">
-              <Fleet />
-            </section>
-
-            <section id="airport" className="py-12 md:py-24">
-              <AirportTransfers />
-            </section>
-
-            <section id="packages" className="py-12 md:py-24">
-              <TourPackagesSection onSelectPackage={handleSelectPackage} />
-            </section>
-
-            <section className="py-12 md:py-24">
-              <PuducherrySpecial />
-            </section>
-
-            <section id="tariff" className="py-12 md:py-24">
-              <PricingTable />
-            </section>
-
-            <section className="py-12 md:py-24">
-              <CorporateServices />
-            </section>
-
-            <section id="routes" className="py-12 md:py-24">
-              <PopularRoutes />
-            </section>
-
-            <section id="why-choose-us" className="py-12 md:py-24">
-              <WhyChooseUs />
-            </section>
-
-            <section id="terms-anchor" className="py-12 md:py-24">
-              <TermsAndConditions />
-            </section>
-
-            <section className="py-12 md:py-24">
-              <RouteList />
-            </section>
-
-            <section id="reviews" className="py-12 md:py-24">
-              <Testimonials />
-            </section>
-          </main>
-        )}
-
-        <Footer />
+        <Footer id="contact" />
         <FloatingAIButton />
+        <LiveBookingNotification />
         <AuthModal />
         <UserBookings isOpen={isUserBookingsOpen} onClose={() => setIsUserBookingsOpen(false)} />
         <UserProfile isOpen={isUserProfileOpen} onClose={() => setIsUserProfileOpen(false)} />
 
         <button
           onClick={scrollToTop}
-          className={`fixed bottom-10 right-8 p-4 bg-white/20 backdrop-blur-md border border-white/20 text-slate-900 dark:text-white rounded-2xl shadow-2xl transition-all duration-500 z-[90] hover:scale-110 active:scale-90 hover:bg-geevee-orange hover:text-white ${
+          className={`fixed bottom-24 md:bottom-10 right-6 md:right-8 p-4 bg-white/20 backdrop-blur-md border border-white/20 text-slate-900 dark:text-white rounded-2xl shadow-2xl transition-all duration-500 z-[90] hover:scale-110 active:scale-90 hover:bg-geevee-orange hover:text-white ${
             showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
           }`}
         >
@@ -268,12 +358,37 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => (
-  <AuthProvider>
-    <LanguageProvider>
-      <AppContent />
-    </LanguageProvider>
-  </AuthProvider>
-);
+const App: React.FC = () => {
+  if (!hasValidKey) {
+    return (
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontFamily:'sans-serif', backgroundColor: '#040812', color: 'white'}}>
+        <div style={{textAlign:'center',maxWidth:520, padding: 32, borderRadius: 24, border: '1px solid rgba(255,255,255,0.1)'}}>
+          <h2 style={{color: '#D4AF37', marginBottom: 16}}>Google Maps API Key Required</h2>
+          <p><strong>Step 1:</strong> <a href="https://console.cloud.google.com/google/maps-apis/start?utm_campaign=gmp-code-assist-ais" target="_blank" rel="noopener" style={{color: '#D4AF37'}}>Get an API Key</a></p>
+          <p><strong>Step 2:</strong> Add your key as a secret in AI Studio:</p>
+          <ul style={{textAlign:'left',lineHeight:'1.8'}}>
+            <li>Open <strong>Settings</strong> (⚙️ gear icon, <strong>top-right corner</strong>)</li>
+            <li>Select <strong>Secrets</strong></li>
+            <li>Type <code>GOOGLE_MAPS_PLATFORM_KEY</code> as the secret name, press <strong>Enter</strong></li>
+            <li>Paste your API key as the value, press <strong>Enter</strong></li>
+          </ul>
+          <p style={{marginTop: 16}}>The app rebuilds automatically after you add the secret.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <APIProvider apiKey={API_KEY} version="weekly">
+      <AuthProvider>
+        <PricingProvider>
+          <LanguageProvider>
+            <AppContent />
+          </LanguageProvider>
+        </PricingProvider>
+      </AuthProvider>
+    </APIProvider>
+  );
+};
 
 export default App;

@@ -1,5 +1,6 @@
 
 import { ReferralService } from './referral.ts';
+import { getSupabase } from './supabase.ts';
 
 // Helper to generate the custom Booking ID format: Ryymm0001
 const generateBookingId = (serviceType: string, createdAt: string) => {
@@ -19,175 +20,255 @@ const generateBookingId = (serviceType: string, createdAt: string) => {
   return `${typeChar}${year}${month}${sequence}`;
 };
 
-// --- Mock Database (LocalStorage) ---
-const DRIVER_STORAGE_KEY = 'geevee_drivers_db';
-const BOOKING_STORAGE_KEY = 'geevee_bookings_db';
-
-const getLocalDrivers = () => {
-  try {
-    const data = localStorage.getItem(DRIVER_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch { return []; }
-};
-
-const saveLocalDrivers = (drivers: any[]) => {
-  localStorage.setItem(DRIVER_STORAGE_KEY, JSON.stringify(drivers));
-};
-
-const getLocalBookings = () => {
-  try {
-    const data = localStorage.getItem(BOOKING_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch { return []; }
-};
-
-const saveLocalBookings = (bookings: any[]) => {
-  localStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(bookings));
-};
-
 export const BookingService = {
   // --- Driver Management ---
   getDrivers: async () => {
-    return getLocalDrivers();
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('drivers')
+      .select('*');
+    
+    if (error) {
+      console.error("Supabase Error (getDrivers):", error);
+      return [];
+    }
+    return (data || []).map((d: any) => ({
+      id: d.id,
+      name: d.name,
+      mobile: d.mobile,
+      license: d.license,
+      vehicleModel: d.vehicle_model,
+      vehicleNumber: d.vehicle_number,
+      status: d.status,
+      joinedAt: d.joined_at,
+      totalTrips: d.total_trips
+    }));
   },
 
   addDriver: async (driverData: any) => {
-    const drivers = getLocalDrivers();
+    const supabase = getSupabase();
     const newDriver = {
-      id: `DRV-${Date.now().toString().slice(-5)}`,
-      ...driverData,
+      name: driverData.name,
+      mobile: driverData.mobile,
+      license: driverData.license,
+      vehicle_model: driverData.vehicleModel,
+      vehicle_number: driverData.vehicleNumber,
       status: 'available',
-      joinedAt: new Date().toISOString(),
-      totalTrips: 0
+      joined_at: new Date().toISOString(),
+      total_trips: 0
     };
-    drivers.push(newDriver);
-    saveLocalDrivers(drivers);
-    return newDriver;
+
+    const { data, error } = await supabase
+      .from('drivers')
+      .insert([newDriver])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Supabase Error (addDriver):", error);
+      throw error;
+    }
+    
+    return {
+      id: data.id,
+      name: data.name,
+      mobile: data.mobile,
+      license: data.license,
+      vehicleModel: data.vehicle_model,
+      vehicleNumber: data.vehicle_number,
+      status: data.status,
+      joinedAt: data.joined_at,
+      totalTrips: data.total_trips
+    };
   },
 
   deleteDriver: async (id: string) => {
-    const drivers = getLocalDrivers().filter((d: any) => d.id !== id);
-    saveLocalDrivers(drivers);
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('drivers')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error("Supabase Error (deleteDriver):", error);
+      throw error;
+    }
   },
 
   // --- Booking Management ---
   saveBooking: async (data: any) => {
+    const supabase = getSupabase();
     const timestamp = new Date().toISOString();
     const displayId = generateBookingId(data.service, timestamp);
 
     const bookingData = {
-      id: `bk_${Date.now()}`,
-      serviceType: data.service,
-      pickupLocation: data.pickup,
-      dropLocation: data.drop,
-      pickupDate: data.date,
-      returnDate: data.returnDate || null,
-      pickupTime: data.time,
+      service_type: data.service,
+      pickup_location: data.pickup,
+      drop_location: data.drop,
+      pickup_date: data.date,
+      return_date: data.returnDate || null,
+      pickup_time: data.time,
       mobile: data.mobile,
-      customerName: data.customerName,
+      customer_name: data.customerName,
       vehicle: data.vehicle,
       price: data.price,
-      appliedReferralCode: data.referralCode || null,
-      discountAmount: data.discountAmount || 0,
-      status: 'pending',
-      createdAt: timestamp,
-      bookingDisplayId: displayId,
-      assignedDriver: null
+      applied_referral_code: data.referralCode || null,
+      discount_amount: data.discountAmount || 0,
+      status: 'confirmed',
+      created_at: timestamp,
+      booking_display_id: displayId,
+      assigned_driver: null
     };
 
-    const bookings = getLocalBookings();
-    bookings.push(bookingData);
-    saveLocalBookings(bookings);
+    const { data: insertedData, error } = await supabase
+      .from('bookings')
+      .insert([bookingData])
+      .select()
+      .single();
 
-    // Return format expected by UI
+    if (error) {
+      console.error("Supabase Error (saveBooking):", error);
+      throw error;
+    }
+
     return { 
-      id: bookingData.id, 
+      id: insertedData.id, 
       bookingId: displayId,
-      ...bookingData 
+      ...insertedData 
     };
   },
 
   getAllBookings: async () => {
-    const bookings = getLocalBookings();
-    return bookings.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .map((b: any) => ({
-        id: b.id,
-        bookingId: b.bookingDisplayId,
-        service: b.serviceType,
-        pickup: b.pickupLocation,
-        drop: b.dropLocation,
-        date: b.pickupDate,
-        returnDate: b.returnDate,
-        time: b.pickupTime,
-        mobile: b.mobile,
-        customerName: b.customerName,
-        vehicle: b.vehicle,
-        price: b.price,
-        status: b.status,
-        timestamp: b.createdAt,
-        assignedDriver: b.assignedDriver
-      }));
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Supabase Error (getAllBookings):", error);
+      return [];
+    }
+
+    return (data || []).map((b: any) => ({
+      id: b.id,
+      bookingId: b.booking_display_id,
+      service: b.service_type,
+      pickup: b.pickup_location,
+      drop: b.drop_location,
+      date: b.pickup_date,
+      returnDate: b.return_date,
+      time: b.pickup_time,
+      mobile: b.mobile,
+      customerName: b.customer_name,
+      vehicle: b.vehicle,
+      price: b.price,
+      status: b.status,
+      timestamp: b.created_at,
+      assignedDriver: b.assigned_driver
+    }));
   },
 
   getUserBookings: async (mobile: string) => {
-    const bookings = getLocalBookings();
-    return bookings
-      .filter((b: any) => b.mobile === mobile)
-      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .map((b: any) => ({
-        id: b.id,
-        bookingId: b.bookingDisplayId,
-        service: b.serviceType,
-        pickup: b.pickupLocation,
-        drop: b.dropLocation,
-        date: b.pickupDate,
-        returnDate: b.returnDate,
-        time: b.pickupTime,
-        vehicle: b.vehicle,
-        price: b.price,
-        status: b.status,
-        timestamp: b.createdAt,
-        assignedDriver: b.assignedDriver
-      }));
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('mobile', mobile)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Supabase Error (getUserBookings):", error);
+      return [];
+    }
+
+    return (data || []).map((b: any) => ({
+      id: b.id,
+      bookingId: b.booking_display_id,
+      service: b.service_type,
+      pickup: b.pickup_location,
+      drop: b.drop_location,
+      date: b.pickup_date,
+      returnDate: b.return_date,
+      time: b.pickup_time,
+      vehicle: b.vehicle,
+      price: b.price,
+      status: b.status,
+      timestamp: b.created_at,
+      assignedDriver: b.assigned_driver
+    }));
   },
 
   updateBookingStatus: async (id: string, status: string) => {
-    const bookings = getLocalBookings();
-    const idx = bookings.findIndex((b: any) => b.id === id);
-    if (idx !== -1) {
-      bookings[idx].status = status;
-      saveLocalBookings(bookings);
-      return true;
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('bookings')
+      .update({ status })
+      .eq('id', id);
+
+    if (error) {
+      console.error("Supabase Error (updateBookingStatus):", error);
+      return false;
     }
-    return false;
+    return true;
   },
 
   assignDriver: async (bookingId: string, driver: any) => {
-    const bookings = getLocalBookings();
-    const idx = bookings.findIndex((b: any) => b.id === bookingId);
+    const supabase = getSupabase();
+    // 1. Update Booking
+    const { error: bookingError } = await supabase
+      .from('bookings')
+      .update({ 
+        assigned_driver: driver,
+        status: 'confirmed' 
+      })
+      .eq('id', bookingId);
     
-    if (idx !== -1) {
-      bookings[idx].assignedDriver = driver;
-      bookings[idx].status = 'confirmed';
-      saveLocalBookings(bookings);
-
-      // Update Driver Status
-      const drivers = getLocalDrivers();
-      const driverIdx = drivers.findIndex((d: any) => d.id === driver.id);
-      if (driverIdx >= 0) {
-        drivers[driverIdx].status = 'on-duty';
-        drivers[driverIdx].totalTrips += 1;
-        saveLocalDrivers(drivers);
-      }
-      return true;
+    if (bookingError) {
+      console.error("Supabase Error (assignDriver - booking):", bookingError);
+      return false;
     }
-    return false;
+
+    // 2. Update Driver Status
+    // First get current trips to increment
+    const { data: driverData, error: fetchError } = await supabase
+      .from('drivers')
+      .select('total_trips')
+      .eq('id', driver.id)
+      .single();
+
+    if (fetchError) {
+      console.error("Supabase Error (assignDriver - fetch driver):", fetchError);
+      return false;
+    }
+
+    const { error: driverError } = await supabase
+      .from('drivers')
+      .update({ 
+        status: 'on-duty',
+        total_trips: (driverData?.total_trips || 0) + 1
+      })
+      .eq('id', driver.id);
+
+    if (driverError) {
+      console.error("Supabase Error (assignDriver - driver update):", driverError);
+      return false;
+    }
+
+    return true;
   },
 
   deleteBooking: async (id: string) => {
-    const bookings = getLocalBookings();
-    const newBookings = bookings.filter((b: any) => b.id !== id);
-    saveLocalBookings(newBookings);
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error("Supabase Error (deleteBooking):", error);
+      throw error;
+    }
   },
 
   getStats: async () => {

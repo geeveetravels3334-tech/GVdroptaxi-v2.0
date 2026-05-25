@@ -14,88 +14,103 @@ interface ServiceItem {
 }
 
 const Services: React.FC = () => {
-  const { language, fontClass } = useLanguage();
-
-  const getTranslatedService = (id: string) => {
-      if (language === 'en') {
-        if(id === 'airport') return { title: 'Airport Transfer', desc: 'Punctual, clean, and reliable transfers.' };
-        if(id === 'oneway') return { title: 'One Way Drop', desc: 'Pay only for one-way distance.' };
-        if(id === 'round') return { title: 'Round Trip', desc: 'Multi-day packages for family tours.' };
-        if(id === 'local') return { title: 'Local Rental', desc: 'Flexible hourly and daily rentals.' };
-      } else if (language === 'ta') {
-        if(id === 'airport') return { title: 'விமான நிலைய டாக்ஸி', desc: 'சரியான நேர மற்றும் நம்பகமான இடமாற்றங்கள்.' };
-        if(id === 'oneway') return { title: 'ஒரு வழி பயணம்', desc: 'ஒரு வழி தூரத்திற்கு மட்டும் பணம் செலுத்துங்கள்.' };
-        if(id === 'round') return { title: 'இரு வழி பயணம்', desc: 'சுற்றுலா பயணங்களுக்கான பல நாள் பேக்கேஜ்கள்.' };
-        if(id === 'local') return { title: 'உள்ளூர் வாடகை', desc: 'மணிநேர மற்றும் தினசரி வாடகை வசதி.' };
-      } else if (language === 'hi') {
-        if(id === 'airport') return { title: 'एयरपोर्ट ट्रांसफर', desc: 'समय पर और विश्वसनीय ट्रांसफर।' };
-        if(id === 'oneway') return { title: 'वन वे ड्रॉप', desc: 'केवल एक तरफ की दूरी का भुगतान करें।' };
-        if(id === 'round') return { title: 'राउंड ट्रिप', desc: 'पारिवारिक पर्यटन के लिए बहु-दिवसीय पैकेज।' };
-        if(id === 'local') return { title: 'लोकल रेंटल', desc: 'घंटे और दैनिक किराये पर उपलब्ध।' };
-      } else if (language === 'te') {
-        if(id === 'airport') return { title: 'విమానాశ్రయ బదిలీ', desc: 'సమయానికి మరియు నమ్మదగిన బదిలీలు.' };
-        if(id === 'oneway') return { title: 'వన్ వే డ్రాప్', desc: 'వన్-వే దూరానికి మాత్రమే చెల్లించండి.' };
-        if(id === 'round') return { title: 'రౌండ్ ట్రిప్', desc: 'కుటుంబ పర్యటనల కోసం బహుళ-రోజుల ప్యాకేజీలు.' };
-        if(id === 'local') return { title: 'లోకల్ రెంటల్', desc: 'గంటలు మరియు రోజువారీ అద్దెలు.' };
-      } else if (language === 'kn') {
-        if(id === 'airport') return { title: 'ವಿಮಾನ ನಿಲ್ದಾಣ ವರ್ಗಾವಣೆ', desc: 'ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಮತ್ತು ವಿಶ್ವಾಸಾರ್ಹ ವರ್ಗಾವಣೆಗಳು.' };
-        if(id === 'oneway') return { title: 'ಒನ್ ವೇ ಡ್ರಾಪ್', desc: 'ಒನ್-ವೇ ದೂರಕ್ಕೆ ಮಾತ್ರ ಪಾವತಿಸಿ.' };
-        if(id === 'round') return { title: 'ರೌಂಡ್ ಟ್ರಿಪ್', desc: 'ಕುಟುಂಬ ಪ್ರವಾಸಗಳಿಗಾಗಿ ಬಹು-ದಿನದ ಪ್ಯಾಕೇಜುಗಳು.' };
-        if(id === 'local') return { title: 'ಲೋಕಲ್ ರೆಂಟಲ್', desc: 'ಗಂಟೆ ಮತ್ತು ದೈನಂದಿನ ಬಾಡಿಗೆಗಳು.' };
-      }
-      return { title: '', desc: '' };
-  }
+  const { language, t, fontClass } = useLanguage();
 
   const services: ServiceItem[] = [
     {
-      ...getTranslatedService('airport'),
-      icon: <Plane className="text-white" size={24} />,
+      title: 'Airport Pickup',
+      desc: 'Prompt and luxury pickups from major airports.',
+      icon: <Plane size={20} className="text-white" />,
       color: 'bg-geevee-orange',
       popular: true
     },
     {
-      ...getTranslatedService('oneway'),
-      icon: <Map className="text-white" size={24} />,
-      color: 'bg-slate-800'
+      title: 'One Way Taxi',
+      desc: 'Economical one-way drops across Tamil Nadu.',
+      icon: <Map size={20} className="text-white" />,
+      color: 'bg-slate-900 dark:bg-slate-800'
     },
     {
-      ...getTranslatedService('round'),
-      icon: <Repeat className="text-white" size={24} />,
-      color: 'bg-slate-800'
+      title: 'Round Trip',
+      desc: 'Perfect for family vacations and multi-day tours.',
+      icon: <Repeat size={20} className="text-white" />,
+      color: 'bg-slate-900 dark:bg-slate-800'
     },
     {
-      ...getTranslatedService('local'),
-      icon: <Clock className="text-white" size={24} />,
-      color: 'bg-slate-800'
+      title: 'Outstation Cab',
+      desc: 'Safe and comfortable long-distance travel.',
+      icon: <Map size={20} className="text-white" />,
+      color: 'bg-slate-900 dark:bg-slate-800'
+    },
+    {
+      title: 'Tour Packages',
+      desc: 'Fixed-rate premium holiday plans for all destinations.',
+      icon: <Clock size={20} className="text-white" />,
+      color: 'bg-slate-900 dark:bg-slate-800'
+    },
+    {
+      title: 'Corporate Travel',
+      desc: 'Dedicated transport solutions for elite businesses.',
+      icon: <Clock size={20} className="text-white" />,
+      color: 'bg-slate-900 dark:bg-slate-800'
     }
   ];
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    <div className="container mx-auto px-4 max-w-6xl py-16 md:py-32">
+      <div className="text-center mb-16 max-w-3xl mx-auto space-y-4">
+        <div className="flex items-center justify-center gap-4 mb-4">
+           <div className="h-px w-12 bg-[#D4AF37] opacity-30"></div>
+           <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.6em] animate-pulse">Signature Suite</span>
+           <div className="h-px w-12 bg-[#D4AF37] opacity-30"></div>
+        </div>
+        <h2 className={`text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight ${fontClass} leading-tight`}>
+          Masterclass in <span className="luxury-text-gradient">Mobility</span>
+        </h2>
+        <p className={`text-slate-500 dark:text-[#9CA3AF] font-bold text-[9px] uppercase tracking-[0.4em] max-w-xl mx-auto leading-relaxed ${fontClass}`}>
+          Curating exceptional journeys through state-of-the-art engineering and heritage hospitality
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
         {services.map((s, i) => (
-          <div key={i} className="glass-card p-6 md:p-8 rounded-[2rem] hover:bg-white/10 dark:hover:bg-white/5 transition-all group relative overflow-hidden backdrop-blur-md border border-white/20">
+          <div 
+            key={i} 
+            className="group relative h-full glass-card p-5 md:p-8 rounded-3xl premium-hover-lift hover:bg-slate-50/50 dark:hover:bg-white/5 hover:border-[#D4AF37]/45 shadow-2xl cursor-pointer overflow-hidden flex flex-col luxury-click"
+          >
             {s.popular && (
-              <div className="absolute top-0 right-0 bg-geevee-orange text-white text-[9px] font-black px-3 py-1.5 rounded-bl-xl uppercase tracking-widest z-10">
-                Popular
+              <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-[#D4AF37]/10 text-[#D4AF37] text-[6px] md:text-[8px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.3em] z-20 border border-[#D4AF37]/20 backdrop-blur-md">
+                Prestige Choice
               </div>
             )}
             
-            {/* Hover Glow Effect */}
-            <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-geevee-orange/20 rounded-full blur-[50px] group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+            {/* Background Texture Overlay */}
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none transition-opacity duration-700 group-hover:opacity-[0.08]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
 
-            <div className={`${s.color} w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform relative z-10`}>
-              {s.icon}
+            {/* Hover Glow Effect */}
+            <div className="absolute -right-24 -bottom-24 w-80 h-80 bg-[#D4AF37]/5 rounded-full blur-[100px] group-hover:bg-[#D4AF37]/15 transition-all duration-700 pointer-events-none"></div>
+
+            <div className="bg-[#D4AF37]/10 text-[#D4AF37] w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[1.5rem] flex items-center justify-center mb-6 md:mb-10 shadow-2xl group-hover:rotate-6 transition-all duration-500 border border-[#D4AF37]/20 relative z-10 scale-105 group-hover:bg-[#D4AF37] group-hover:text-[#0B0F1A] group-hover:shadow-[#D4AF37]/40">
+              <div className="icon-hover-pulse transition-transform duration-500 scale-75 md:scale-90">
+                {s.icon}
+              </div>
             </div>
             
-            <h4 className={`text-base md:text-xl font-black text-slate-900 dark:text-white mb-2 ${fontClass}`}>{s.title}</h4>
-            <p className={`text-xs md:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed mb-6 ${fontClass}`}>{s.desc}</p>
+            <h4 className={`text-base md:text-xl font-black text-slate-800 dark:text-white mb-2 md:mb-4 tracking-tighter ${fontClass} group-hover:text-[#D4AF37] transition-colors leading-tight`}>
+              {s.title}
+            </h4>
+            <p className={`text-[9px] md:text-[11px] text-slate-500 dark:text-[#D1D5DB] font-bold leading-relaxed mb-6 md:mb-10 grow ${fontClass} opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-wider`}>
+              {s.desc}
+            </p>
             
             <button 
               onClick={() => window.location.href = `tel:${CONTACT_NUMBER}`}
-              className="flex items-center gap-2 text-[10px] md:text-xs font-black text-geevee-orange uppercase tracking-widest group-hover:gap-4 transition-all"
+              className="group/btn flex items-center justify-between w-full text-[7px] md:text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.3em] transition-all relative z-10"
             >
-              Book Now <ArrowUpRight size={14} />
+              <span>Initialize Reserve</span>
+              <div className="bg-white/5 text-[#D4AF37] p-2 md:p-3 rounded-lg md:rounded-xl group-hover/btn:bg-[#D4AF37] group-hover/btn:text-[#0B0F1A] transition-all duration-500 shadow-xl border border-white/5">
+                <ArrowUpRight size={16} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform duration-500" />
+              </div>
             </button>
           </div>
         ))}

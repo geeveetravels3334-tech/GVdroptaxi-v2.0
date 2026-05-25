@@ -42,45 +42,45 @@ const VehicleTypeGrid: React.FC = () => {
       examples: 'WagonR',
       capacity: '4 Seater',
       price: '₹13/km',
-      icon: <Car className="text-geevee-orange" />,
-      color: 'bg-orange-50',
-      borderColor: 'hover:border-geevee-orange'
+      icon: <Car className="text-[#D4AF37]" />,
+      color: 'bg-[#D4AF37]/5',
+      borderColor: 'hover:border-[#D4AF37]'
     },
     {
       name: getTypeName('Sedan'),
       examples: 'Swift Dzire',
       capacity: '4 Seater',
       price: '₹14/km',
-      icon: <Car className="text-blue-600" />,
-      color: 'bg-blue-50',
-      borderColor: 'hover:border-blue-600'
+      icon: <Car className="text-[#D4AF37]" />,
+      color: 'bg-[#D4AF37]/5',
+      borderColor: 'hover:border-[#D4AF37]'
     },
     {
       name: 'SUV',
       examples: 'Ertiga, Xylo',
       capacity: '6-7 Seater',
       price: '₹18/km',
-      icon: <Car className="text-green-600" />,
-      color: 'bg-green-50',
-      borderColor: 'hover:border-green-600'
+      icon: <Car className="text-[#D4AF37]" />,
+      color: 'bg-[#D4AF37]/5',
+      borderColor: 'hover:border-[#D4AF37]'
     },
     {
       name: getTypeName('Premium'),
       examples: 'Innova Crysta',
       capacity: '7 Seater',
       price: '₹22/km',
-      icon: <Car className="text-purple-600" />,
-      color: 'bg-purple-50',
-      borderColor: 'hover:border-purple-600'
+      icon: <Car className="text-[#D4AF37]" />,
+      color: 'bg-[#D4AF37]/5',
+      borderColor: 'hover:border-[#D4AF37]'
     },
     {
       name: getTypeName('Traveller'),
       examples: '12-17 Seats',
       capacity: '12+ Seater',
       price: '₹26/km',
-      icon: <Car className="text-red-600" />,
-      color: 'bg-red-50',
-      borderColor: 'hover:border-red-600'
+      icon: <Car className="text-[#D4AF37]" />,
+      color: 'bg-[#D4AF37]/5',
+      borderColor: 'hover:border-[#D4AF37]'
     }
   ];
 
@@ -95,22 +95,22 @@ const VehicleTypeGrid: React.FC = () => {
     <div className="container mx-auto px-4 max-w-5xl">
       {/* Centered Header Section */}
       <div className="text-center mb-12">
-        <div className={`inline-flex items-center gap-2 bg-slate-100 text-slate-500 px-4 py-1.5 rounded-full text-[9px] font-black tracking-[0.3em] uppercase mb-4 ${fontClass}`}>
-          <Car size={12} className="text-geevee-orange" />
+        <div className={`inline-flex items-center gap-2 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-[#9CA3AF] px-4 py-1.5 rounded-full text-[9px] font-black tracking-[0.3em] uppercase mb-4 ${fontClass} border border-transparent dark:border-[#D4AF37]/20`}>
+          <Car size={12} className="text-[#D4AF37]" />
           {language === 'en' ? 'Our Elite Fleet' : 
            language === 'ta' ? 'எங்கள் வாகனங்கள்' : 
            language === 'hi' ? 'हमारे वाहन' : 
            language === 'te' ? 'మా వాహనాలు' : 
-           'ನಮ್ಮ ವಾಹನಗಳು'}
+           'ನಮ್ಮ వాహనములు'}
         </div>
-        <h3 className={`text-2xl md:text-5xl font-black text-slate-900 mb-4 leading-tight tracking-tight ${fontClass}`}>
+        <h3 className={`text-2xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 leading-tight tracking-tight ${fontClass}`}>
           {language === 'en' ? 'Select Your Travel Companion' : 
            language === 'ta' ? 'உங்கள் பயணத் துணையைத் தேர்ந்தெடுக்கவும்' :
            language === 'hi' ? 'अपना यात्रा साथी चुनें' :
            language === 'te' ? 'మీ ప్రయాణ సహచరుడిని ఎంచుకోండి' :
-           'ನಿಮ್ಮ ಪ್ರಯಾಣದ ಸಂಗಾತಿಯನ್ನು ಆರಿಸಿ'}
+           'ನಿಮ್ಮ ಪ್ರಯಾಣದ ಸಂಗಾತಿಯನ್ನು ఆರಿಸಿ'}
         </h3>
-        <p className={`text-slate-500 font-medium text-sm md:text-base max-w-xl mx-auto leading-relaxed ${fontClass}`}>
+        <p className={`text-slate-500 dark:text-[#9CA3AF] font-medium text-sm md:text-base max-w-xl mx-auto leading-relaxed ${fontClass}`}>
           {language === 'en' ? 'Meticulously maintained vehicles for every journey, paired side-by-side for your quick selection.' :
            language === 'ta' ? 'ஒவ்வொரு பயணத்திற்கும் முறையாக பராமரிக்கப்படும் வாகனங்கள்.' :
            language === 'hi' ? 'हर यात्रा के लिए सावधानीपूर्वक बनाए रखा गया वाहन।' :
@@ -119,36 +119,36 @@ const VehicleTypeGrid: React.FC = () => {
       </div>
 
       {/* 2-Column Side-by-Side Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {types.map((t, i) => (
           <div 
             key={i} 
             onClick={handleSelect}
-            className={`group cursor-pointer bg-white p-5 rounded-[2rem] border-2 border-slate-50 shadow-md hover:shadow-xl transition-all duration-500 flex items-center justify-between relative overflow-hidden ${t.borderColor}`}
+            className={`group cursor-pointer glass-card p-4 md:p-5 rounded-3xl md:rounded-[2rem] flex items-center justify-between relative overflow-hidden transition-all duration-500 border border-slate-200 dark:border-[#D4AF37]/15 ${t.borderColor} hover:bg-white/60 dark:hover:bg-[#111827]/60 active:scale-[0.98] luxury-click`}
           >
             {/* Hover Background Accent */}
             <div className={`absolute inset-0 ${t.color} opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}></div>
             
-            <div className="relative z-10 flex items-center gap-5">
-              <div className={`${t.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500`}>
-                {React.cloneElement(t.icon as React.ReactElement<{ size: number }>, { size: 28 })}
+            <div className="relative z-10 flex items-center gap-3 md:gap-5">
+              <div className={`${t.color} w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500 border border-[#D4AF37]/10`}>
+                {React.cloneElement(t.icon as React.ReactElement<{ size: number, className: string }>, { size: 24, className: `${(t.icon as React.ReactElement<{ className: string }>).props.className} md:w-7 md:h-7` })}
               </div>
-              <div>
-                <h4 className={`text-lg font-black text-slate-900 leading-tight ${fontClass}`}>{t.name}</h4>
-                <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase">{t.examples}</p>
-                <div className="flex items-center gap-2 text-slate-500 font-bold text-[10px] mt-1">
-                  <UserCheck size={12} className="text-geevee-orange" />
+              <div className="flex flex-col justify-center">
+                <h4 className={`text-base md:text-lg font-black text-slate-900 dark:text-white leading-tight ${fontClass} group-hover:text-luxury-gold-soft transition-colors`}>{t.name}</h4>
+                <p className="text-[8px] md:text-[9px] font-black text-slate-400 dark:text-[#9CA3AF] tracking-[0.2em] uppercase mt-0.5">{t.examples}</p>
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-[#9CA3AF] font-bold text-[9px] md:text-[10px] mt-1">
+                  <UserCheck size={10} className="text-[#D4AF37] md:w-3 md:h-3" />
                   {t.capacity}
                 </div>
               </div>
             </div>
             
-            <div className="relative z-10 text-right flex flex-col items-end gap-2">
-              <div className="text-2xl font-black text-geevee-dark group-hover:text-geevee-orange transition-colors leading-none tracking-tight">
+            <div className="relative z-10 text-right flex flex-col items-end gap-1.5 md:gap-2 shrink-0">
+              <div className="text-xl md:text-2xl font-black text-slate-900 dark:text-luxury-gold-soft transition-colors leading-none tracking-tight">
                 {t.price}
               </div>
-              <button className="px-4 py-2.5 bg-slate-950 text-white rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg group-hover:bg-geevee-orange active:scale-95 whitespace-nowrap">
-                Book <ArrowRight size={12} />
+              <button className="px-3 md:px-4 py-2 md:py-2.5 bg-slate-950 dark:bg-[#D4AF37] text-white dark:text-[#0B0F1A] rounded-lg md:rounded-xl font-black text-[8px] md:text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 md:gap-2 shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] active:scale-95 whitespace-nowrap">
+                Book <ArrowRight size={10} className="md:w-3 md:h-3" />
               </button>
             </div>
           </div>

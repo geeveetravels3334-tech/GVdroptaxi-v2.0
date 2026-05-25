@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shield, Headphones, DollarSign, Award, ThumbsUp, Landmark, CheckCircle, ArrowRight } from 'lucide-react';
+import { Shield, Headphones, DollarSign, Award, ThumbsUp, Landmark, CheckCircle, ArrowRight, Map } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext.tsx';
 
 const WhyChooseUs: React.FC = () => {
@@ -8,106 +8,119 @@ const WhyChooseUs: React.FC = () => {
 
   const features = [
     {
-      title: 'Fixed Transparent Pricing',
-      desc: 'All-inclusive quotes with no surprises.',
+      title: '24/7 Customer Support',
+      desc: 'Always available via WhatsApp and Phone.',
+      icon: <Headphones size={18} />
+    },
+    {
+      title: 'Verified Professional Drivers',
+      desc: 'Screened and trained experts for safe travel.',
+      icon: <Shield size={18} />
+    },
+    {
+      title: 'Spotless Clean Cars',
+      desc: 'Hygienic and well-maintained premium fleet.',
+      icon: <ThumbsUp size={18} />
+    },
+    {
+      title: 'Real-time GPS Tracking',
+      desc: 'Track your ride for enhanced security.',
+      icon: <Map size={18} />
+    },
+    {
+      title: 'Affordable Fixed Pricing',
+      desc: 'Zero hidden charges and lowest fares guaranteed.',
       icon: <DollarSign size={18} />
-    },
-    {
-      title: 'Vetted Professional Drivers',
-      desc: 'Expert navigators for Southern roads.',
-      icon: <Award size={18} />
-    },
-    {
-      title: 'Regional Hub Excellence',
-      desc: 'Hubs in Madurai, Coimbatore, Trichy, Chennai.',
-      icon: <Landmark size={18} />
     }
   ];
 
   return (
-    <div className="container mx-auto px-6 max-w-5xl">
-      <div className="bg-geevee-dark rounded-[2.5rem] p-8 lg:p-12 relative overflow-hidden shadow-2xl border border-white/5">
-        {/* Subtle background decoration */}
-        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-1/2 h-1/2 bg-geevee-orange rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-1/2 h-1/2 bg-blue-500 rounded-full blur-[120px]"></div>
+    <div className="container mx-auto px-4 max-w-7xl py-20 md:py-32">
+      <div className="glass-card rounded-[3rem] p-8 md:p-20 relative overflow-hidden group border-[#D4AF37]/20">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+           <div className="absolute top-[-20%] left-[-20%] w-[120%] h-[120%] bg-gradient-to-br from-[#D4AF37]/10 to-transparent dark:from-[#D4AF37]/5 dark:to-transparent rounded-full blur-[150px] transition-all duration-[3000ms] opacity-70"></div>
+           <div className="absolute bottom-[-20%] right-[-20%] w-[120%] h-[120%] bg-gradient-to-tl from-[#111827]/20 to-transparent dark:from-[#0B0F1A]/5 dark:to-transparent rounded-full blur-[150px] transition-all duration-[3000ms] opacity-50"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/30 via-transparent to-transparent dark:from-white/5 dark:via-transparent dark:to-transparent opacity-80"></div>
         </div>
 
-        <div className="relative z-10">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
-            
-            {/* Left Content Side */}
-            <div className="lg:w-5/12 text-center lg:text-left">
-              <h2 className={`text-geevee-orange font-black tracking-widest uppercase mb-4 text-[10px] flex items-center justify-center lg:justify-start gap-3 ${fontClass}`}>
-                <span className="w-6 h-[2px] bg-geevee-orange"></span>
-                PREMIUM STANDARDS
-              </h2>
-              <h3 className={`text-xl md:text-2xl lg:text-3xl font-black text-white leading-tight mb-6 ${fontClass}`}>
-                {language === 'hi' ? <>यात्रा का तरीका बदलें <br /><span className="text-luxury-gold">तमिलनाडु में।</span></> : 
-                 language === 'ta' ? <>உங்கள் பயணத்தை <br /><span className="text-luxury-gold">புதியதாய் அனுபவியுங்கள்.</span></> :
-                 language === 'te' ? <>మీ ప్రయాణాన్ని <br /><span className="text-luxury-gold">పునర్నిర్వచించండి.</span></> :
-                 language === 'kn' ? <>ನಿಮ್ಮ ಪ್ರಯಾಣವನ್ನು <br /><span className="text-luxury-gold">ಮರು ವ್ಯಾಖ್ಯಾನಿಸಿ.</span></> :
-                 <>Redefining The Way <br />You <span className="text-luxury-gold">Travel TN.</span></>
-                }
-              </h3>
-              <p className={`text-slate-400 text-sm font-medium leading-relaxed mb-8 ${fontClass}`}>
-                {language === 'hi' ? 'सिर्फ एक टैक्सी सेवा से कहीं अधिक।' :
-                 language === 'ta' ? 'வெறும் டாக்ஸி சேவை மட்டுமல்ல, ஒரு பாரம்பரியம்.' :
-                 language === 'te' ? 'కేవలం టాక్సీ సర్వీస్ మాత్రమే కాదు.' :
-                 language === 'kn' ? 'ಕೇವಲ ಟ್ಯಾಕ್ಸಿ ಸೇವೆಯಲ್ಲ.' :
-                 `More than just a taxi service, we are a travel legacy providing safe transport for over 15 years.`
-                }
-              </p>
-              
-              <div className={`space-y-4 max-w-sm mx-auto lg:mx-0 mb-10 ${fontClass}`}>
-                {['GPS Fleet Monitoring', 'Strict Sanitization', 'Multilingual Chauffeurs'].map((check, i) => (
-                  <div key={i} className="flex items-center gap-3 text-white font-bold text-xs">
-                    <CheckCircle className="text-geevee-orange" size={16} />
-                    {check}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap justify-center lg:justify-start gap-8 pt-8 border-t border-white/5">
-                <div className="text-center lg:text-left">
-                  <span className="block text-2xl font-black text-white mb-1">15+</span>
-                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Experience</span>
-                </div>
-                <div className="text-center lg:text-left">
-                  <span className="block text-2xl font-black text-white mb-1">10k+</span>
-                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Travelers</span>
-                </div>
-              </div>
+        <div className="relative z-10 flex flex-col lg:flex-row gap-20 items-center">
+          
+          {/* Left Content Side */}
+          <div className="lg:w-1/2 text-center lg:text-left">
+            <div className={`flex items-center justify-center lg:justify-start gap-4 mb-8 ${fontClass}`}>
+               <div className="w-12 h-[2px] bg-[#D4AF37]"></div>
+               <span className="text-luxury-gold-soft font-black tracking-[0.5em] uppercase text-[9px] animate-pulse">Elite Standard</span>
             </div>
-
-            {/* Right Side: Feature Grid */}
-            <div className="lg:w-7/12 grid grid-cols-1 gap-4">
-              {features.map((f, i) => (
-                <div key={i} className="group bg-white/5 border border-white/10 p-6 rounded-2xl hover:bg-white/10 transition-all duration-300">
-                  <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 rounded-xl bg-geevee-orange text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
-                      {f.icon}
-                    </div>
-                    <div>
-                      <h4 className={`text-lg font-black text-white mb-1 group-hover:text-geevee-orange transition-colors ${fontClass}`}>{f.title}</h4>
-                      <p className={`text-slate-400 font-medium text-xs leading-relaxed ${fontClass}`}>{f.desc}</p>
-                    </div>
+            
+            <h2 className={`text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight mb-4 tracking-tight ${fontClass}`}>
+              The Gold Standard of <span className="luxury-text-gradient">Tamil Nadu</span> Travel.
+            </h2>
+            
+            <p className={`text-slate-500 dark:text-[#D1D5DB] font-medium text-sm leading-relaxed mb-8 ${fontClass}`}>
+              Over 15 years leading the industry. We don't just provide transport; we deliver an uncompromising experience of safety, luxury, and professional precision.
+            </p>
+            
+            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12 ${fontClass}`}>
+              {['Real-time Fleet Tracking', 'Certified Sanitation Protocol', 'Regional Experience Centers', 'Multilingual Chauffeurs'].map((check, i) => (
+                <div key={i} className="flex items-center gap-4 text-slate-800 dark:text-white font-bold text-xs">
+                  <div className="bg-[#D4AF37]/10 p-2 rounded-xl border border-[#D4AF37]/20 shadow-sm">
+                    <CheckCircle className="text-[#D4AF37]" size={16} />
                   </div>
+                  {check}
                 </div>
               ))}
-              
-              <div className="bg-geevee-orange p-6 rounded-2xl mt-2 flex items-center justify-between group cursor-pointer hover:bg-orange-600 transition-all">
-                <div className="text-white">
-                  <p className="text-[8px] font-black uppercase tracking-widest mb-1 opacity-80">Join Our Network</p>
-                  <p className={`text-lg font-black ${fontClass}`}>Trusted by Corporates</p>
+            </div>
+
+            <div className="flex items-center justify-center lg:justify-start gap-8 pt-8 border-t border-slate-200 dark:border-white/10">
+              <div>
+                <span className="block text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-1 luxury-text-gradient italic font-serif">15Yrs</span>
+                <span className="text-[8px] font-bold text-[#9CA3AF] uppercase tracking-widest leading-none">Market Leadership</span>
+              </div>
+              <div className="w-px h-10 bg-slate-200 dark:bg-white/10"></div>
+              <div>
+                <span className="block text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-1 luxury-text-gradient italic font-serif">10k+</span>
+                <span className="text-[8px] font-bold text-[#9CA3AF] uppercase tracking-widest leading-none">Guests Served</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side: Feature Grid */}
+          <div className="lg:w-1/2 grid grid-cols-1 gap-6">
+            {features.map((f, i) => (
+              <div 
+                key={i} 
+                className="group/item glass-card p-6 md:p-8 rounded-2xl premium-hover-lift hover:bg-white/5 shadow-md hover:shadow-xl border-[#D4AF37]/10"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 text-[#D4AF37] flex items-center justify-center border border-white/10 group-hover/item:bg-[#D4AF37] group-hover/item:text-[#0B0F1A] transition-colors duration-500 shrink-0 shadow-sm">
+                    <div className="icon-hover-rotate transition-transform duration-500">
+                      {f.icon}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className={`text-base font-black text-white mb-1 transition-colors ${fontClass} group-hover/item:text-luxury-gold-soft`}>{f.title}</h4>
+                    <p className={`text-[#D1D5DB] font-semibold text-[11px] leading-relaxed ${fontClass}`}>{f.desc}</p>
+                  </div>
                 </div>
-                <div className="bg-white/20 p-2.5 rounded-xl text-white group-hover:translate-x-1 transition-transform">
+              </div>
+            ))}
+            
+            <div 
+              className="bg-transparent bg-gradient-to-br from-[#111827] to-[#0B0F1A] border border-[#D4AF37]/25 p-8 rounded-3xl mt-4 flex items-center justify-between group/cta cursor-pointer transition-all duration-500 shadow-2xl hover:border-[#D4AF37]/45 premium-hover-lift luxury-click relative overflow-hidden group/item premium-reflection"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/cta:animate-light-swipe"></div>
+              <div className="relative z-10">
+                <p className="text-[8px] font-black uppercase tracking-widest mb-1 text-luxury-gold-soft">Join Our Exclusive Network</p>
+                <p className={`text-lg font-bold text-white ${fontClass}`}>Choice of Corporates</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded-xl text-[#D4AF37] border border-white/10 group-hover/cta:bg-[#D4AF37] group-hover/cta:text-[#0B0F1A] transition-all duration-500 shadow-lg">
+                <div className="icon-hover-shift transition-transform duration-300">
                   <ArrowRight size={20} />
                 </div>
               </div>
             </div>
-
           </div>
+
         </div>
       </div>
     </div>

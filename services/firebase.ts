@@ -1,16 +1,17 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAJrRdasbJBw025qZ9twB_4gqkVPLY6nTY",
-  authDomain: "gvdroptaxi.firebaseapp.com",
-  projectId: "gvdroptaxi",
-  storageBucket: "gvdroptaxi.firebasestorage.app",
-  messagingSenderId: "1039878628667",
-  appId: "1:1039878628667:web:9e7bda7edd9c2f2a3a431e"
-};
+import { initializeFirestore, doc, getDocFromServer } from "firebase/firestore";
+import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Use initializeFirestore instead of getFirestore to enable long polling
+// this fixes "Could not reach Cloud Firestore backend" in some environments
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+}, firebaseConfig.firestoreDatabaseId);
+
+// Removed test connection code as it might print unnecessary network errors

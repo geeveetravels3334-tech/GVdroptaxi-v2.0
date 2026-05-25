@@ -7,6 +7,7 @@ export interface ItineraryStep {
 
 export interface PackageDetail {
   title: string;
+  description?: string;
   duration: string;
   price: string;
   itinerary: ItineraryStep[];
@@ -15,8 +16,8 @@ export interface PackageDetail {
 
 export const translations = {
   en: {
-    brand: "Geevee Travels",
-    subBrand: "Tamilnadu Taxi Tours",
+    brand: "GVDROPTAXI",
+    subBrand: "By Geevee Travels",
     nav: {
       home: "Home",
       packages: "Tour Plans",
@@ -43,9 +44,22 @@ export const translations = {
       chooseFromFleet: "Choose from our premium fleet"
     },
     hero: {
+      tagline: "South India's Signature Selection",
+      titleTop: "Signature Journeys through",
+      titleBottom: "TAMIL NADU",
       subtitle: "Premium outstation and local cab booking service in Tamil Nadu with fixed pricing and professional drivers.",
       bookNow: "Book Your Ride",
-      chat: "Chat with Experts"
+      chat: "Chat with Experts",
+      eliteDispatch: "Elite Dispatch",
+      heritageTours: "Grand Heritage Tours",
+      crystaElite: "Crysta Elite Suite",
+      flagshipPrestige: "Flagship prestige",
+      sanitationTier: "Sanitation Tier",
+      eliteGold: "Elite Gold",
+      arrivalProtocol: "Arrival Protocol",
+      zeroWait: "Zero Wait",
+      liveDispatch: "Live Dispatch",
+      heritageCollections: "Signature Heritage collections"
     },
     packages: {
       sectionTitle: "Bespoke Tour Packages",
@@ -54,14 +68,22 @@ export const translations = {
       closeBtn: "Close Plans",
       title: "Our Tour Plans",
       list: [
-        { id: 'velankanni', name: "Chennai to Velankanni 2 Days" },
-        { id: 'tiruvannamalai', name: "Tiruvannamalai Spiritual 2 Days" },
-        { id: 'arupadaiveedu', name: "Arupadai Veedu Tour" },
-        { id: 'panchabhoota', name: "5 Elements Temple Tour" },
-        { id: 'kanchipuram', name: "Kanchipuram Temple Tour" },
-        { id: 'mahabalipuram', name: "Mahabalipuram Day Trip" },
-        { id: 'tirupati', name: "Tirupati Spiritual Tour" },
-        { id: 'pondicherry', name: "Pondicherry 3 Days Tour" }
+        { id: 'pondicherry', name: "Pondicherry", tagline: "The French Riviera of the East" },
+        { id: 'velankanni', name: "Velankanni", tagline: "Soul-stirring Spiritual Journey" },
+        { id: 'tiruvannamalai', name: "Tiruvannamalai", tagline: "The Abode of Eternal Peace" },
+        { id: 'mahabalipuram', name: "Mahabalipuram", tagline: "Ancient Shoreline Heritage" },
+        { id: 'kanchipuram', name: "Kanchipuram", tagline: "The Golden City of Temples" },
+        { id: 'yercaud', name: "Yercaud", tagline: "Jewel of the Eastern Ghats" },
+        { id: 'hogenakkal', name: "Hogenakkal", tagline: "The Niagara of India" },
+        { id: 'chennai', name: "Chennai City Tour", tagline: "Gateway to South India" },
+        { id: 'ooty', name: "Ooty Hills", tagline: "The Queen of Hill Stations" },
+        { id: 'kodaikanal', name: "Kodaikanal", tagline: "Princess of Hill Stations" },
+        { id: 'rameswaram', name: "Rameswaram", tagline: "The Island City of Faith" },
+        { id: 'madurai', name: "Madurai", tagline: "The Lotus City - Athens of the East" },
+        { id: 'kanyakumari', name: "Kanyakumari", tagline: "The Land's End Signature" },
+        { id: 'tirupati', name: "Tirupati", tagline: "Sacred Seven Hills Journey" },
+        { id: 'arupadaiveedu', name: "Arupadaiveedu", tagline: "Six Holy Abodes of Lord Murugan" },
+        { id: 'panchabhoota', name: "Panchabhoota", tagline: "The Five Elements Shiva Tour" }
       ]
     },
     airport: {
@@ -90,101 +112,245 @@ export const translations = {
     },
     packageDisclaimer: "Note: Toll, Parking, and State Permit fees are excluded and must be paid as per actuals.",
     packageDetails: {
-      velankanni: {
-        title: "Chennai to Velankanni 2 Days Tour Package",
-        duration: "2 Days / 1 Night",
-        price: "Starts at ₹8,200",
+      pondicherry: {
+        title: "Chennai to Pondicherry",
+        description: "Experience the unique blend of French heritage and Tamil culture. From the spiritual Auroville to the vibrant Rock Beach, Pondicherry offers a serene escape. Wander through pastel-colored streets and enjoy world-class cafes.",
+        duration: "1 or 2 Days",
+        price: "Starts at ₹3,250",
+        distance: "300 KM (Up & Down)",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
         itinerary: [
-          { text: "Day 1: Pickup from Chennai and drive to Velankanni. Visit Our Lady of Health Basilica." },
-          { text: "Day 1: Evening attendance at the Holy Rosary and Beach visit." },
-          { text: "Day 2: Morning Mass at the Basilica, Visit the Museum of Offerings." },
-          { text: "Day 2: Afternoon departure and Safe Return journey to Chennai." }
+          { text: "Early morning pickup from Chennai." },
+          { text: "Visit Auroville Matrimandir and Spiritual center." },
+          { text: "Explore French Colony and White Town architecture." },
+          { text: "Relax at Rock Beach and Promenade." },
+          { text: "Enjoy French cafes and local shopping." }
         ],
-        inclusions: ["Fuel and Driver Batta", "Sedan: ₹8,200", "SUV: ₹10,750", "Professional Chauffeur"]
+        inclusions: ["Professional Driver", "Clean AC Vehicle", "24/7 Support"]
+      },
+      velankanni: {
+        title: "Chennai to Velankanni",
+        description: "A profound spiritual journey to the 'Lourdes of the East'. Experience divine blessings at the Annai Vailankanni Basilica and find peace by the serene sea shore. Perfect for families seeking a peaceful pilgrimage.",
+        duration: "2 Days / 1 Night",
+        price: "₹8,190",
+        distance: "630 KM (Up & Down)",
+        kmsIncluded: "630 KM",
+        driverBatta: "₹500 Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
+        itinerary: [
+          { text: "Day 1: Chennai Pickup, Trichy Breakfast Stop." },
+          { text: "Day 1: Reach Velankanni, Visit Basilica Church & Sea Shore." },
+          { text: "Day 1: Overnight Stay in Velankanni." },
+          { text: "Day 2: Morning Prayer, Museum visit, Local sightseeing." },
+          { text: "Day 2: Return journey to Chennai with evening drop." }
+        ],
+        inclusions: ["Fuel Included", "630 KM Coverage", "Professional Driver"]
       },
       tiruvannamalai: {
-        title: "Divine Spiritual Journey: Chennai to Tiruvannamalai",
-        duration: "2 Days / 1 Night",
-        price: "Starts at ₹7,499",
+        title: "Chennai to Tiruvannamalai",
+        description: "Connect with your inner self at the feet of the sacred Arunachala Hill. Visit one of the Pancha Bhoota Stalas and immerse yourself in the spiritual energy of Ramana Ashram.",
+        duration: "1 Day Tour",
+        price: "₹5,200",
+        distance: "400 KM (Up & Down)",
+        kmsIncluded: "400 KM",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
         itinerary: [
-          { text: "Day 1: 05:00 AM Pickup. 09:30 AM Arrival & Check-in. 11:00 AM Arunachaleswarar Temple Darshan." },
-          { text: "Day 1: 04:00 PM Sri Ramana & Yogi Ramsuratkumar Ashrams. Optional trek to Virupaksha Cave." },
-          { text: "Day 2: 04:00 AM Girivalam (14 km circumambulation) & Ashta Lingams visit. 12:00 PM Check-out." },
-          { text: "Day 2: Visit Adi Annamalai Temple. 03:00 PM Departure (Optional Gingee Fort). 08:30 PM Drop." }
+          { text: "Early morning pickup from Chennai." },
+          { text: "Lord Arunachaleswarar Temple Darshan." },
+          { text: "Spiritual visit to Ramana Ashram & Virupaksha Cave." },
+          { text: "Girivalam (Temple parikrama) visit." },
+          { text: "Evening return to Chennai." }
         ],
-        inclusions: ["Fuel and Driver Batta", "Sedan: ₹7,499", "SUV: ₹9,799", "Temple Guidance"]
-      },
-      arupadaiveedu: {
-        title: "Arupadai Veedu (6 Abodes of Murugan) 4 Days Tour",
-        duration: "4 Days / 3 Nights",
-        price: "Starts at ₹21,999",
-        itinerary: [
-          { text: "Day 1: Chennai ➔ Swamimalai (4th Abode). Drive 6-7 hrs. Visit Swaminathaswamy Temple (Where Murugan taught Pranava Mantra to Shiva)." },
-          { text: "Day 2: Pazhamudircholai (6th Abode) & Thiruparankundram (1st Abode). Drive to Madurai. Visit Alagar Hill & Marriage site of Murugan." },
-          { text: "Day 3: Tiruchendur (2nd Abode). Seashore Temple. Traditional sea dip before darshan. Viswaroopa Darshan at 5:30 AM." },
-          { text: "Day 4: Palani (3rd Abode) ➔ Return to Chennai. Reach hilltop via Rope Car/Winch. Famous for Panchamirtham." }
-        ],
-        inclusions: ["Fuel and Driver Batta", "Sedan: ₹21,999", "SUV: ₹30,999", "Temple Guidance", "Travel Tips: Traditional Dress Code Mandatory"]
-      },
-      panchabhoota: {
-        title: "Pancha Bhoota Sthalam (5 Elements) 5 Days Tour",
-        duration: "5 Days / 4 Nights",
-        price: "Starts at ₹19,500",
-        itinerary: [
-          { text: "Day 1: Kanchipuram (Earth/Prithvi) - Ekambareswarar Temple." },
-          { text: "Day 2: Tiruvannamalai (Fire/Agni) - Arunachaleswarar Temple." },
-          { text: "Day 3: Trichy/Thiruvanaikaval (Water/Appu) - Jambukeswarar Temple." },
-          { text: "Day 4: Chidambaram (Sky/Akash) - Natarajar Temple." },
-          { text: "Day 5: Srikalahasti (Air/Vayu) and return to Chennai." }
-        ],
-        inclusions: ["Fuel and Driver Batta", "Sedan: ₹19,500", "SUV: ₹26,000", "Toll/Parking Extra"]
-      },
-      kanchipuram: {
-        title: "Kanchipuram & Mahabalipuram 1 Day Tour",
-        duration: "1 Day (12-14 Hours)",
-        price: "Starts at ₹3,800",
-        itinerary: [
-          { text: "Morning: Pickup from Chennai, Drive to Kanchipuram. Visit Kamakshi Amman & Kailasanathar Temples." },
-          { text: "Afternoon: Silk Saree Shopping (Optional) and Lunch." },
-          { text: "Evening: Drive to Mahabalipuram. Visit Shore Temple and Five Rathas." },
-          { text: "Night: Return to Chennai drop." }
-        ],
-        inclusions: ["Fuel", "Driver Batta", "Sedan: ₹3,800", "SUV: ₹5,500"]
+        inclusions: ["Dedicated Driver", "AC Comfort", "Point-to-Point Service"]
       },
       mahabalipuram: {
-        title: "Mahabalipuram & Pondicherry 2 Days Tour",
-        duration: "2 Days / 1 Night",
-        price: "Starts at ₹5,500",
+        title: "Chennai to Mahabalipuram",
+        description: "Journey through time at this UNESCO World Heritage site. Admire the exquisite rock-cut architecture, the iconic Shore Temple, and the massive lighthouse overlooking the Bay of Bengal.",
+        duration: "1 Day Tour",
+        price: "₹3,250",
+        distance: "140 KM (Up & Down)",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Parking Extra",
         itinerary: [
-          { text: "Day 1: Chennai to Mahabalipuram sightseeing (UNESCO sites)." },
-          { text: "Day 1: Drive to Pondicherry via ECR. Evening Beach walk." },
-          { text: "Day 2: Auroville, French Colony, and Paradise Beach." },
-          { text: "Day 2: Return to Chennai." }
+          { text: "Pickup and travel via scenic ECR road." },
+          { text: "Visit Shore Temple and Five Rathas." },
+          { text: "Explore Arjuna's Penance and Butter Ball." },
+          { text: "Relax at Mahabalipuram Beach." },
+          { text: "Museum visit and shopping for stone crafts." }
         ],
-        inclusions: ["Fuel", "Driver Batta", "Sedan: ₹5,500", "SUV: ₹7,500"]
+        inclusions: ["Comfortable Ride", "Local Expertise", "ECR Drive Experience"]
+      },
+      kanchipuram: {
+        title: "Chennai to Kanchipuram",
+        description: "Explore the 'Silk City' and its thousand temples. Experience the spiritual aura of Kamakshi Amman Temple and witness the legendary craftsmanship of Kancheepuram Silk Weavers.",
+        duration: "1 Day Tour",
+        price: "₹3,250",
+        distance: "160 KM (Up & Down)",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Parking Extra",
+        itinerary: [
+          { text: "Pickup and travel to the Temple City." },
+          { text: "Visit Kamakshi Amman and Ekambareswarar Temples." },
+          { text: "Explore Varadharaja Perumal Temple architecture." },
+          { text: "Exclusive Silk Saree Shopping session." },
+          { text: "Evening return journey." }
+        ],
+        inclusions: ["Temple City Guide Support", "Safe Storage for Shopping", "AC Sedan/SUV"]
+      },
+      yercaud: {
+        title: "Chennai to Yercaud",
+        description: "Escape to the 'Poor Man's Ooty' for a refreshing hilltop retreat. Enjoy the cool breeze of the Shevaroy Hills, tranquil boating on the lake, and stunning viewpoints high above the clouds.",
+        duration: "2 Days / 1 Night",
+        price: "₹9,360",
+        distance: "720 KM (Up & Down)",
+        kmsIncluded: "720 KM",
+        driverBatta: "₹500 Extra",
+        otherCharges: "Toll, Permit, Hills, Parking Extra",
+        itinerary: [
+          { text: "Day 1: Salem Stopover and Hill road drive." },
+          { text: "Day 1: Yercaud Lake Boating and Deer Park." },
+          { text: "Day 1: Lady's Seat and Pagoda View points." },
+          { text: "Day 2: Killiyur Falls and Rose Garden explore." },
+          { text: "Day 2: Sightseeing at the hill town and return to Chennai." }
+        ],
+        inclusions: ["Hill Station Expertise", "Driver Batta Excluded", "Fuel Included"]
+      },
+      hogenakkal: {
+        title: "Chennai to Hogenakkal",
+        description: "Witness the raw power of nature at the 'Niagara of India'. Experience the thrill of coracle rides amidst misty waterfalls and enjoy the scenic beauty of the Kaveri river canyon.",
+        duration: "2 Days / 1 Night",
+        price: "₹9,100",
+        distance: "700 KM (Up & Down)",
+        kmsIncluded: "700 KM",
+        driverBatta: "₹500 Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
+        itinerary: [
+          { text: "Day 1: Depart from Chennai to Hogenakkal." },
+          { text: "Day 1: Experience Coracle ride and Waterfall views." },
+          { text: "Day 1: Local fish fry lunch and relaxation." },
+          { text: "Day 2: Morning visit to nearby scenic spots." },
+          { text: "Day 2: Leisure travel back to Chennai." }
+        ],
+        inclusions: ["Family Safe Drivers", "Clean Vehicles", "24/7 Road Side Support"]
+      },
+      chennai: {
+        title: "Chennai City Package",
+        description: "Explore the soul of Madras. From the historic Marina Beach to the spiritual center of Mylapore, discover the heritage, culture, and coastal charm of Chennai in a single day.",
+        duration: "1 Day Tour",
+        price: "₹3,250",
+        distance: "City Limits",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Parking Extra",
+        itinerary: [
+          { text: "Marina Beach and Gandhi Statue visit." },
+          { text: "Kapaleeshwarar Temple and Mylapore Heritage Walk." },
+          { text: "Fort St. George and Museum explore." },
+          { text: "ECR scenic drive up to VGP/Mayajaal." },
+          { text: "Shopping at T-Nagar or major malls." }
+        ],
+        inclusions: ["City Expert Driver", "AC Comfort", "Customizable Spots"]
+      },
+      ooty: {
+        title: "Chennai to Ooty Hills",
+        description: "Breathe in the fresh mountain air of the Nilgiris. Experience the nostalgic Toy Train, lush tea gardens, and the breathtaking views from Doddabetta peak in the 'Queen of Hill Stations'.",
+        duration: "3 Days / 2 Nights",
+        price: "₹14,500",
+        itinerary: [
+          { text: "Day 1: Arrival and Ooty Lake Boating." },
+          { text: "Day 2: Coonoor tour and Botanical Gardens." },
+          { text: "Day 3: Pykara Falls and Return Journey." }
+        ],
+        inclusions: ["Hill Station Professional Driver", "Clean SUV/Sedan"]
+      },
+      kodaikanal: {
+        title: "Chennai to Kodaikanal",
+        description: "Escape to the misty hills of Kodaikanal. Wander through pine forests, enjoy a boat ride on the star-shaped lake, and witness the stunning Pillar Rocks and Coaker's Walk.",
+        duration: "3 Days / 2 Nights",
+        price: "₹13,800",
+        itinerary: [
+          { text: "Day 1: Lake side relaxation and Bryan Park." },
+          { text: "Day 2: Pillar Rocks, Guna Caves, and Pine Forest." },
+          { text: "Day 3: Silver Cascade Falls and Descent." }
+        ],
+        inclusions: ["Experienced Mountain Pilot", "AC Vehicle"]
+      },
+      rameswaram: {
+        title: "Chennai to Rameswaram",
+        description: "A sacred pilgrimage to the island city of Rameswaram. Cross the majestic Pamban Bridge and seek blessings at the historic Ramanathaswamy Temple near the tip of the Indian peninsula.",
+        duration: "2 Days / 1 Night",
+        price: "₹9,500",
+        itinerary: [
+          { text: "Day 1: Pamban Bridge view and Temple visit." },
+          { text: "Day 2: Dhanushkodi - The Ghost Town explore." }
+        ],
+        inclusions: ["Pilgrimage Route Expert", "Fuel Included"]
+      },
+      madurai: {
+        title: "Chennai to Madurai",
+        description: "Step into the 'Athens of the East'. Marvel at the architectural grandeur of the Meenakshi Amman Temple and explore the rich history of the Nayak dynasty in this ancient city.",
+        duration: "2 Days",
+        price: "₹8,400",
+        itinerary: [
+          { text: "Day 1: Meenakshi Temple and Palace Visit." },
+          { text: "Day 2: Alagar Kovil and Local Markets." }
+        ],
+        inclusions: ["Heritage City Guide Driver", "City Tour Included"]
+      },
+      kanyakumari: {
+        title: "Chennai to Kanyakumari",
+        description: "Witness the confluence of three oceans at the southernmost tip of India. Enjoy the spectacular sunrise and sunset, and visit the iconic Vivekananda Rock Memorial.",
+        duration: "3 Days / 2 Nights",
+        price: "₹15,200",
+        itinerary: [
+          { text: "Day 1: Arrival and Sunset view at the beach." },
+          { text: "Day 2: Vivekananda Rock and Suchindram Temple." },
+          { text: "Day 3: Padmanabhapuram Palace return stop." }
+        ],
+        inclusions: ["Long-distance Specialist Driver", "AC Comfort"]
       },
       tirupati: {
-        title: "Chennai to Tirupati One Day Tour",
-        duration: "1 Day / Same Day Return",
-        price: "Starts at ₹4,500",
+        title: "Chennai to Tirupati",
+        description: "A divine journey to the home of Lord Venkateswara. Experience a smooth and timely pilgrimage to the sacred Tirumala hills for a peaceful darshan.",
+        duration: "1 Day Tour",
+        price: "₹4,500",
         itinerary: [
-          { text: "Pickup from Chennai (Early Morning)." },
-          { text: "Drive to Tirumala. Darshan assistance (Tickets to be booked by guest)." },
-          { text: "Visit Padmavathi Ammavari Temple at Tiruchanur." },
-          { text: "Return to Chennai by night." }
+          { text: "Early morning pickup and Hill drive." },
+          { text: "Tirumala Temple Darshan (Ticket separate)." },
+          { text: "Alamelumangapuram (Padmavathi) Temple visit." }
         ],
-        inclusions: ["Fuel", "Driver Batta", "Andhra Permit & Tax Extra", "Sedan: ₹4,500", "SUV: ₹6,000"]
+        inclusions: ["Andhra Permit Assistance", "Punctual Service"]
       },
-      pondicherry: {
-        title: "Pondicherry Leisure 3 Days Tour",
-        duration: "3 Days / 2 Nights",
-        price: "Starts at ₹7,500",
+      arupadaiveedu: {
+        title: "Arupadaiveedu Spiritual Tour",
+        description: "Embark on a soul-stirring journey to the six holy abodes of Lord Murugan. A comprehensive spiritual tour across the most sacred temples of Tamil Nadu.",
+        duration: "4 Days / 3 Nights",
+        price: "₹21,999",
         itinerary: [
-          { text: "Day 1: Arrival in Pondicherry. Check-in and Promenade Beach." },
-          { text: "Day 2: Auroville Globe (Matrimandir) and French Quarter Heritage Walk." },
-          { text: "Day 3: Chunnambar Boat House and Return to Chennai." }
+          { text: "Day 1: Swamimalai and Thiruchendur." },
+          { text: "Day 2: Palani and Madurai (Pazhamudhircholai)." },
+          { text: "Day 3: Tirupparankunram and Return path." },
+          { text: "Day 4: Thiruthani and Final Drop." }
         ],
-        inclusions: ["Fuel", "Driver Batta", "Sedan: ₹7,500", "SUV: ₹9,800"]
+        inclusions: ["Spiritual Route Specialist", "Luggage Support"]
+      },
+      panchabhoota: {
+        title: "Panchabhoota Elements Tour",
+        description: "A pilgrimage to the five sacred temples of Lord Shiva, each representing one of the five elements of nature - Earth, Water, Fire, Air, and Space.",
+        duration: "5 Days / 4 Nights",
+        price: "₹19,500",
+        itinerary: [
+          { text: "Day 1: Earth (Kanchipuram) & Fire (Tiruvannamalai)." },
+          { text: "Day 2: Water (Trichy - Jambukeswarar)." },
+          { text: "Day 3: Space (Chidambaram - Nataraja)." },
+          { text: "Day 4: Air (Kalahasti) & Sripuram Gold Temple." }
+        ],
+        inclusions: ["Multi-day Professional Pilot", "AC Vehicle"]
       }
     },
     packageForm: {
@@ -196,8 +362,8 @@ export const translations = {
     }
   },
   ta: {
-    brand: "ஜீவி டிராவல்ஸ்",
-    subBrand: "தமிழ்நாடு டாக்ஸி டூர்ஸ்",
+    brand: "GVDROPTAXI",
+    subBrand: "ஜீவி டிராவல்ஸ் - தமிழ்நாடு",
     nav: {
       home: "முகப்பு",
       packages: "சுற்றுலா திட்டங்கள்",
@@ -224,9 +390,22 @@ export const translations = {
       chooseFromFleet: "எங்கள் பிரீமியம் வாகனங்களில் இருந்து தேர்வு செய்யவும்"
     },
     hero: {
+      tagline: "தென்னிந்தியாவின் அடையாளத் தேர்வு",
+      titleTop: "அடையாளப் பயணங்கள்",
+      titleBottom: "தமிழ்நாடு",
       subtitle: "தமிழ்நாட்டின் சிறந்த வெளியூர் மற்றும் உள்ளூர் டாக்ஸி சேவை. நிலையான கட்டணம் மற்றும் அனுபவமிக்க ஓட்டுநர்கள்.",
       bookNow: "பயணத்தைத் தொடங்க",
-      chat: "உரையாடுங்கள்"
+      chat: "உரையாடுங்கள்",
+      eliteDispatch: "எலைட் டிஸ்பாட்ச்",
+      heritageTours: "மாபெரும் பாரம்பரிய சுற்றுலா",
+      crystaElite: "க்ரிஸ்டா எலைட் சூட்",
+      flagshipPrestige: "முதன்மை கௌரவம்",
+      sanitationTier: "சுத்திகரிப்பு அடுக்கு",
+      eliteGold: "எலைட் கோல்ட்",
+      arrivalProtocol: "வருகை நெறிமுறை",
+      zeroWait: "பூஜ்ஜிய காத்திருப்பு",
+      liveDispatch: "நேரடி டிஸ்பாட்ச்",
+      heritageCollections: "அடையாள பாரம்பரிய தொகுப்புகள்"
     },
     packages: {
       sectionTitle: "சிறப்பு சுற்றுலா திட்டங்கள்",
@@ -235,155 +414,272 @@ export const translations = {
       closeBtn: "மூடுக",
       title: "சுற்றுலா தொகுப்புகள்",
       list: [
-        { id: 'velankanni', name: "சென்னை - வேளாங்கண்ணி 2 நாட்கள்" },
-        { id: 'tiruvannamalai', name: "திருவண்ணாமலை 2 நாட்கள் ஆன்மீக பயணம்" },
-        { id: 'arupadaiveedu', name: "அறுபடை வீடு ஆன்மீக பயணம்" },
-        { id: 'panchabhoota', name: "பஞ்ச பூத ஸ்தலங்கள்" },
-        { id: 'kanchipuram', name: "காஞ்சிபுரம் கோவில் உலா" },
-        { id: 'mahabalipuram', name: "மகாபலிபுரம் ஒரு நாள் பயணம்" },
-        { id: 'tirupati', name: "திருப்பதி தரிசன பயணம்" },
-        { id: 'pondicherry', name: "புதுச்சேரி 3 நாட்கள் உலா" }
+        { id: 'pondicherry', name: "புதுச்சேரி சுற்றுலா", tagline: "பிரஞ்சு கலாச்சாரம் மற்றும் கடற்கரை அமைதி" },
+        { id: 'velankanni', name: "வேளாங்கண்ணி புனித யாத்திரை", tagline: "புனித ஆரோக்கிய அன்னை பேராலய தரிசனம்" },
+        { id: 'tiruvannamalai', name: "திருவண்ணாமலை ஆன்மீக பயணம்", tagline: "அண்ணாமலையார் கோவில் தரிசனம்" },
+        { id: 'mahabalipuram', name: "மகாபலிபுரம் பாரம்பரிய உலா", tagline: "பல்லவர் கால சிற்பக்கலை அதிசயங்கள்" },
+        { id: 'kanchipuram', name: "காஞ்சிபுரம் கோவில் மாநகரம்", tagline: "ஆன்மீகம் மற்றும் பட்டு நகரம்" },
+        { id: 'yercaud', name: "ஏற்காடு பனிப்பொழிவு", tagline: "மலைகளின் ரகசியம் - பசுமை உலா" },
+        { id: 'hogenakkal', name: "ஒகேனக்கல் நீர்வீழ்ச்சி", tagline: "இந்தியாவின் நயாகரா" },
+        { id: 'chennai', name: "சென்னை மாநகர சுற்றுலா", tagline: "தென்னிந்தியாவின் நுழைவுவாயில்" },
+        { id: 'ooty', name: "ஊட்டி மலை சுற்றுலா", tagline: "மலைகளின் ராணி" },
+        { id: 'kodaikanal', name: "கொடைக்கானல் இயற்கை உலா", tagline: "மலைகளின் இளவரசி" },
+        { id: 'rameswaram', name: "ராமேஸ்வரம் ஆன்மீக பயணம்", tagline: "புனித தனுஷ்கோடி மற்றும் கோவில் தரிசனம்" },
+        { id: 'madurai', name: "மதுரை கோவில் மாநகரம்", tagline: "தூங்கா நகரம் - மீனாட்சி அம்மன் கோவில்" },
+        { id: 'kanyakumari', name: "கன்னியாகுமரி சூரிய உதயம்", tagline: "இந்தியாவின் தென்கோடி முனை" },
+        { id: 'tirupati', name: "திருப்பதி ஏழுமலையான் தரிசனம்", tagline: "புனித ஏழுமலை யாத்திரை" },
+        { id: 'arupadaiveedu', name: "அறுபடைவீடு ஆன்மீக பயணம்", tagline: "முருகப்பெருமானின் ஆறு படைவீடுகள்" },
+        { id: 'panchabhoota', name: "பஞ்சபூத ஸ்தலங்கள்", tagline: "ஐந்து இயற்கை மூலகங்களின் சிவன் தரிசனம்" }
       ]
     },
     airport: {
       tag: "விமான நிலைய சேவை",
-      desc: "அனைத்து முக்கிய விமான நிலையங்களுக்கும் சரியான நேரத்தில், பாதுகாப்பான பயண சேவை.",
-      benefit1: "சரியான நேரம்",
-      benefit1Desc: "விமானம் தரையிறங்கும் முன்பே நாங்கள் காத்திருப்போம்.",
+      desc: "சென்னை, திருச்சி, மதுரை மற்றும் கோயம்புத்தூர் விமான நிலையங்களுக்கு பாதுகாப்பான மற்றும் நம்பகமான ஆப்-கால் டாக்ஸி சேவை.",
+      benefit1: "நேரப்படி வருகை",
+      benefit1Desc: "விமான நேரத்தைக் கண்காணித்து உங்கள் வருகைக்கு முன்பே நாங்கள் தயாராக இருப்போம்.",
       benefit2: "பெரிய வாகனங்கள்",
-      benefit2Desc: "குடும்ப லக்கேஜ்களுக்கான SUV மற்றும் வேன் வசதி.",
-      benefit3: "பாதுகாப்பு முக்கியம்",
-      benefit3Desc: "பாதுகாப்பான பயணத்திற்கு அனுபவமிக்க ஓட்டுநர்கள்.",
-      bookBtn: "முன்பதிவு செய்க"
+      benefit2Desc: "அதிகமான லக்கேஜ் மற்றும் குடும்பத்தினருடன் வசதியாக பயணம் செய்ய SUV மற்றும் டிராவலர்ஸ்.",
+      benefit3: "பாதுகாப்பான பயணம்",
+      benefit3Desc: "அனுபவம் வாய்ந்த ஓட்டுநர்களுடன் உங்கள் பயணம் எப்போதும் பாதுகாப்பானது.",
+      bookBtn: "விமான பயணத்தை முன்பதிவு செய்"
     },
     corporate: {
       tag: "சிறப்பு சேவைகள்",
-      title: "கார்ப்பரேட் மற்றும் இண்டஸ்ட்ரியல்",
-      subtitle: "முக்கிய தொழில் நிறுவனங்களுக்கான பிரத்யேக போக்குவரத்து சேவை.",
-      description: "சிப்காட் மற்றும் முக்கிய தொழில் நகரங்களுக்கு தினசரி மற்றும் மாதந்திர வாடகை அடிப்படையில் வாகனங்கள்.",
+      title: "கார்ப்பரேட் மற்றும் தொழில்முறை போக்குவரத்து",
+      subtitle: "முக்கிய தொழில்துறை மையங்கள் மற்றும் நிறுவனங்களுக்கான வடிவமைக்கப்பட்ட போக்குவரத்து.",
+      description: "சிப்காட் மற்றும் முக்கிய நகரங்களுக்கான தினசரி மற்றும் மாதாந்திர போக்குவரத்து தேவைகளை நாங்கள் நிறைவு செய்கிறோம்.",
       hubs: [
-        { name: "ஸ்ரீ சிட்டி (தடா)", desc: "பிசினஸ் சிட்டி" },
-        { name: "ஸ்ரீபெரும்புதூர்", desc: "ஆட்டோமொபைல் ஹப்" },
-        { name: "ஒரகடம்", desc: "தொழில் வழித்தடம்" },
-        { name: "சிப்காட்", desc: "உற்பத்தி ஆலைகள்" }
+        { name: "ஸ்ரீ சிட்டி (தடா)", desc: "ஒருங்கிணைந்த வணிக நகரம்" },
+        { name: "ஸ்ரீபெரும்புதூர்", desc: "ஆட்டோமொபைல் மையம்" },
+        { name: "ஒரகடம்", desc: "தொழிற்துறை வழித்தடம்" },
+        { name: "சிப்காட் பூங்காக்கள்", desc: "உற்பத்தி மையங்கள்" }
       ],
-      cta: "விவரம் கேட்க"
+      cta: "கார்ப்பரேட் திட்டங்களுக்கு விசாரிக்கவும்"
     },
-    packageDisclaimer: "குறிப்பு: சுங்கச்சாவடி (Toll), பார்க்கிங் மற்றும் மாநில வரி (Permit) ஆகியவை பயணத்தின் போது தனியாக செலுத்த வேண்டும்.",
+    fleet: {
+      title: "எங்கள் வாகனங்கள்",
+      subtitle: "சுத்தமான மற்றும் வசதியான பிரீமியம் வாகனங்கள்.",
+      features: {
+        ac: "ஏசி வசதி",
+        music: "இசை அமைப்பு",
+        carrier: "கேரியர்/பைகள்",
+        clean: "சுத்தமான வாகனங்கள்"
+      },
+      perKm: "/ கி.மீ"
+    },
+    packageDisclaimer: "குறிப்பு: சுங்கச்சாவடி, பார்க்கிங் மற்றும் மாநில அனுமதி கட்டணங்கள் தனி.",
     packageDetails: {
-      velankanni: {
-        title: "சென்னை - வேளாங்கண்ணி 2 நாட்கள்",
-        duration: "2 நாட்கள் / 1 இரவு",
-        price: "தொடக்க விலை ₹8,200",
+      pondicherry: {
+        title: "Chennai to Pondicherry",
+        description: "Experience the unique blend of French heritage and Tamil culture. From the spiritual Auroville to the vibrant Rock Beach, Pondicherry offers a serene escape. Wander through pastel-colored streets and enjoy world-class cafes.",
+        duration: "1 or 2 Days",
+        price: "Starts at ₹3,250",
+        distance: "300 KM (Up & Down)",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
         itinerary: [
-          { text: "நாள் 1: சென்னையிலிருந்து வேளாங்கண்ணி பயணம். மாதா பேராலயம் தரிசனம்." },
-          { text: "நாள் 1: மாலை கடற்கரை மற்றும் செபம்." },
-          { text: "நாள் 2: காலை திருப்பலி மற்றும் மியூசியம்." },
-          { text: "நாள் 2: மதியம் சென்னை திரும்புதல்." }
+          { text: "Early morning pickup from Chennai." },
+          { text: "Visit Auroville Matrimandir and Spiritual center." },
+          { text: "Explore French Colony and White Town architecture." },
+          { text: "Relax at Rock Beach and Promenade." },
+          { text: "Enjoy French cafes and local shopping." }
         ],
-        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "செடான்: ₹8,200", "SUV: ₹10,750", "அனுபவமிக்க ஓட்டுநர்"]
+        inclusions: ["Professional Driver", "Clean AC Vehicle", "24/7 Support"]
+      },
+      velankanni: {
+        title: "Chennai to Velankanni",
+        description: "A profound spiritual journey to the 'Lourdes of the East'. Experience divine blessings at the Annai Vailankanni Basilica and find peace by the serene sea shore. Perfect for families seeking a peaceful pilgrimage.",
+        duration: "2 Days / 1 Night",
+        price: "₹8,190",
+        distance: "630 KM (Up & Down)",
+        kmsIncluded: "630 KM",
+        driverBatta: "₹500 Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
+        itinerary: [
+          { text: "Day 1: Chennai Pickup, Trichy Breakfast Stop." },
+          { text: "Day 1: Reach Velankanni, Visit Basilica Church & Sea Shore." },
+          { text: "Day 1: Overnight Stay in Velankanni." },
+          { text: "Day 2: Morning Prayer, Museum visit, Local sightseeing." },
+          { text: "Day 2: Return journey to Chennai with evening drop." }
+        ],
+        inclusions: ["Fuel Included", "630 KM Coverage", "Professional Driver"]
       },
       tiruvannamalai: {
-        title: "சென்னை - திருவண்ணாமலை 2 நாட்கள் ஆன்மீக பயணம்",
-        duration: "2 நாட்கள் / 1 இரவு",
-        price: "தொடக்க விலை ₹7,499",
+        title: "Chennai to Tiruvannamalai",
+        description: "Connect with your inner self at the feet of the sacred Arunachala Hill. Visit one of the Pancha Bhoota Stalas and immerse yourself in the spiritual energy of Ramana Ashram.",
+        duration: "1 Day Tour",
+        price: "₹5,200",
+        distance: "400 KM (Up & Down)",
+        kmsIncluded: "400 KM",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
         itinerary: [
-          { text: "நாள் 1: காலை 5:00 சென்னை புறப்பாடு. காலை 9:30 திருவண்ணாமலை வருகை." },
-          { text: "நாள் 1: காலை 11:00 அண்ணாமலையார் கோவில் தரிசனம். மாலை 4:00 ரமணா & யோகி ராம்சுரத்குமார் ஆசிரமம்." },
-          { text: "நாள் 2: அதிகாலை 4:00 கிரிவலம் (14 கி.மீ) மற்றும் அஷ்ட லிங்க தரிசனம். பிற்பகல் 1:00 ஆதி அண்ணாமலை கோவில்." },
-          { text: "நாள் 2: பிற்பகல் 3:00 சென்னை திரும்புதல் (செஞ்சி கோட்டை விருப்பம்). இரவு 8:30 சென்னை சேருதல்." }
+          { text: "Early morning pickup from Chennai." },
+          { text: "Lord Arunachaleswarar Temple Darshan." },
+          { text: "Spiritual visit to Ramana Ashram & Virupaksha Cave." },
+          { text: "Girivalam (Temple parikrama) visit." },
+          { text: "Evening return to Chennai." }
         ],
-        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "செடான்: ₹7,499", "SUV: ₹9,799", "மாநில வரி உட்பட"]
-      },
-      arupadaiveedu: {
-        title: "அறுபடை வீடு 4 நாட்கள் ஆன்மீக பயணம்",
-        duration: "4 நாட்கள் / 3 இரவுகள்",
-        price: "தொடக்க விலை ₹21,999",
-        itinerary: [
-          { text: "நாள் 1: சென்னை ➔ சுவாமிமலை (4ம் படைவீடு). சுவாமிநாதசுவாமி தரிசனம் (தகப்பன் சுவாமி)." },
-          { text: "நாள் 2: பழமுதிர்ச்சோலை (6ம் படைவீடு) & திருப்பரங்குன்றம் (1ம் படைவீடு). மதுரை பயணம்." },
-          { text: "நாள் 3: திருச்செந்தூர் (2ம் படைவீடு). கடற்கரை கோவில் மற்றும் புனித நீராடல்." },
-          { text: "நாள் 4: பழனி (3ம் படைவீடு). ரோப் கார் அல்லது வின்ச் மூலம் மலை தரிசனம். சென்னை திரும்புதல்." }
-        ],
-        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "செடான்: ₹21,999", "SUV: ₹30,999", "குறிப்பு: பாரம்பரிய உடை அவசியம்"]
-      },
-      panchabhoota: {
-        title: "பஞ்ச பூத ஸ்தலங்கள் 5 நாட்கள் பயணம்",
-        duration: "5 நாட்கள் / 4 இரவுகள்",
-        price: "தொடக்க விலை ₹19,500",
-        itinerary: [
-          { text: "நாள் 1: காஞ்சிபுரம் (நிலம்) - ஏகாம்பரேஸ்வரர்." },
-          { text: "நாள் 2: திருவண்ணாமலை (நெருப்பு) - அருணாசலேஸ்வரர்." },
-          { text: "நாள் 3: திருச்சி (நீர்) - ஜம்புகேஸ்வரர்." },
-          { text: "நாள் 4: சிதம்பரம் (ஆகாயம்) - நடராஜர்." },
-          { text: "நாள் 5: காளஹஸ்தி (காற்று) மற்றும் சென்னை திரும்புதல்." }
-        ],
-        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "செடான்: ₹19,500", "SUV: ₹26,000", "சுங்கச்சாவடி கட்டணம் தனி"]
-      },
-      kanchipuram: {
-        title: "காஞ்சிபுரம் & மகாபலிபுரம் 1 நாள் பயணம்",
-        duration: "1 நாள் (12-14 மணிநேரம்)",
-        price: "தொடக்க விலை ₹3,800",
-        itinerary: [
-          { text: "காலை: காமாட்சி அம்மன் & கைலாசநாதர் கோவில்." },
-          { text: "மதியம்: பட்டு சேலை ஷாப்பிங் மற்றும் மதிய உணவு." },
-          { text: "மாலை: மகாபலிபுரம் கடற்கரை கோவில் மற்றும் ஐந்து ரதங்கள்." },
-          { text: "இரவு: சென்னை திரும்புதல்." }
-        ],
-        inclusions: ["எரிபொருள்", "டிரைவர் பேட்டா", "செடான்: ₹3,800", "SUV: ₹5,500"]
+        inclusions: ["Dedicated Driver", "AC Comfort", "Point-to-Point Service"]
       },
       mahabalipuram: {
-        title: "மகாபலிபுரம் & பாண்டிச்சேரி 2 நாட்கள்",
-        duration: "2 நாட்கள் / 1 இரவு",
-        price: "தொடக்க விலை ₹5,500",
+        title: "Chennai to Mahabalipuram",
+        description: "Journey through time at this UNESCO World Heritage site. Admire the exquisite rock-cut architecture, the iconic Shore Temple, and the massive lighthouse overlooking the Bay of Bengal.",
+        duration: "1 Day Tour",
+        price: "₹3,250",
+        distance: "140 KM (Up & Down)",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Parking Extra",
         itinerary: [
-          { text: "நாள் 1: மகாபலிபுரம் சுற்றுலா." },
-          { text: "நாள் 1: ஈசிஆர் வழியாக பாண்டிச்சேரி பயணம். கடற்கரை நடை." },
-          { text: "நாள் 2: ஆரோவில், பிரஞ்சு காலனி மற்றும் பாரடைஸ் பீச்." },
-          { text: "நாள் 2: சென்னை திரும்புதல்." }
+          { text: "Pickup and travel via scenic ECR road." },
+          { text: "Visit Shore Temple and Five Rathas." },
+          { text: "Explore Arjuna's Penance and Butter Ball." },
+          { text: "Relax at Mahabalipuram Beach." },
+          { text: "Museum visit and shopping for stone crafts." }
         ],
-        inclusions: ["எரிபொருள்", "டிரைவர் பேட்டா", "செடான்: ₹5,500", "SUV: ₹7,500"]
+        inclusions: ["Comfortable Ride", "Local Expertise", "ECR Drive Experience"]
       },
-      tirupati: {
-        title: "சென்னை - திருப்பதி ஒரு நாள் பயணம்",
-        duration: "1 நாள்",
-        price: "தொடக்க விலை ₹4,500",
+      kanchipuram: {
+        title: "Chennai to Kanchipuram",
+        description: "Explore the 'Silk City' and its thousand temples. Experience the spiritual aura of Kamakshi Amman Temple and witness the legendary craftsmanship of Kancheepuram Silk Weavers.",
+        duration: "1 Day Tour",
+        price: "₹3,250",
+        distance: "160 KM (Up & Down)",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Parking Extra",
         itinerary: [
-          { text: "அதிகாலை சென்னையில் இருந்து புறப்படுதல்." },
-          { text: "திருமலை பயணம். தரிசனம் (டிக்கெட் பயணிகள் பொறுப்பு)." },
-          { text: "திருச்சானூர் பத்மாவதி தாயார் கோவில்." },
-          { text: "இரவு சென்னை திரும்புதல்." }
+          { text: "Pickup and travel to the Temple City." },
+          { text: "Visit Kamakshi Amman and Ekambareswarar Temples." },
+          { text: "Explore Varadharaja Perumal Temple architecture." },
+          { text: "Exclusive Silk Saree Shopping session." },
+          { text: "Evening return journey." }
         ],
-        inclusions: ["எரிபொருள்", "டிரைவர் பேட்டா", "ஆந்திர மாநில வரி தனி", "செடான்: ₹4,500", "SUV: ₹6,000"]
+        inclusions: ["Temple City Guide Support", "Safe Storage for Shopping", "AC Sedan/SUV"]
       },
-      pondicherry: {
-        title: "பாண்டிச்சேரி 3 நாட்கள் உலா",
+      hogenakkal: {
+        title: "Chennai to Hogenakkal",
+        description: "Witness the raw power of nature at the 'Niagara of India'. Experience the thrill of coracle rides amidst misty waterfalls and enjoy the scenic beauty of the Kaveri river canyon.",
+        duration: "2 Days / 1 Night",
+        price: "₹9,100",
+        distance: "700 KM (Up & Down)",
+        kmsIncluded: "700 KM",
+        driverBatta: "₹500 Extra",
+        otherCharges: "Toll, Permit, Parking Extra",
+        itinerary: [
+          { text: "Day 1: Depart from Chennai to Hogenakkal." },
+          { text: "Day 1: Experience Coracle ride and Waterfall views." },
+          { text: "Day 1: Local fish fry lunch and relaxation." },
+          { text: "Day 2: Morning visit to nearby scenic spots." },
+          { text: "Day 2: Leisure travel back to Chennai." }
+        ],
+        inclusions: ["Family Safe Drivers", "Clean Vehicles", "24/7 Road Side Support"]
+      },
+      chennai: {
+        title: "Chennai City Package",
+        description: "Explore the soul of Madras. From the historic Marina Beach to the spiritual center of Mylapore, discover the heritage, culture, and coastal charm of Chennai in a single day.",
+        duration: "1 Day Tour",
+        price: "₹3,250",
+        distance: "City Limits",
+        kmsIncluded: "250 KM Min",
+        driverBatta: "Extra",
+        otherCharges: "Toll, Parking Extra",
+        itinerary: [
+          { text: "Marina Beach and Gandhi Statue visit." },
+          { text: "Kapaleeshwarar Temple and Mylapore Heritage Walk." },
+          { text: "Fort St. George and Museum explore." },
+          { text: "ECR scenic drive up to VGP/Mayajaal." },
+          { text: "Shopping at T-Nagar or major malls." }
+        ],
+        inclusions: ["City Expert Driver", "AC Comfort", "Customizable Spots"]
+      },
+      ooty: {
+        title: "ஊட்டி மலை சுற்றுலா",
+        description: "நீலகிரியின் குளிர்ந்த காற்றை சுவாசித்து மகிழுங்கள். பசுமையான தேயிலைத் தோட்டங்கள், அமைதியான ஊட்டி ஏரி என குடும்பத்துடன் சிறந்த சுற்றுலா.",
         duration: "3 நாட்கள் / 2 இரவுகள்",
-        price: "தொடக்க விலை ₹7,500",
+        price: "தொடக்க விலை ₹8,499",
         itinerary: [
-          { text: "நாள் 1: பாண்டிச்சேரி வருகை மற்றும் ப்ரோமினேட் கடற்கரை." },
-          { text: "நாள் 2: ஆரோவில் மற்றும் பிரஞ்சு காலனி." },
-          { text: "நாள் 3: சுண்ணம்பார் படகு சவாரி மற்றும் சென்னை திரும்புதல்." }
+          { text: "நாள் 1: ஊட்டி வருகை, ஊட்டி ஏரி மற்றும் தாவரவியல் பூங்கா தரிசனம்." },
+          { text: "நாள் 2: குன்னூர் சுற்றுலா, தேயிலை தொழிற்சாலை மற்றும் தொட்டபெட்டா சிகரம்." },
+          { text: "நாள் 3: பைக்காரா நீர்வீழ்ச்சி மற்றும் சென்னை திரும்புதல்." }
         ],
-        inclusions: ["எரிபொருள்", "டிரைவர் பேட்டா", "செடான்: ₹7,500", "SUV: ₹9,800"]
+        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "அனுபவமிக்க ஓட்டுநர்"]
+      },
+      kodaikanal: {
+        title: "கொடைக்கானல் இயற்கை உலா",
+        description: "மலைகளின் இளவரசியை கண்டுகளியுங்கள். பைன் காடுகளின் வழியே நடந்து இயற்கையை ரசித்து, நட்சத்திர ஏரியில் படகு சவாரி செய்து மகிழுங்கள்.",
+        duration: "3 நாட்கள் / 2 இரவுகள்",
+        price: "தொடக்க விலை ₹7,999",
+        itinerary: [
+          { text: "நாள் 1: வருகை, கொடை ஏரி, பிரையன்ட் பூங்கா மற்றும் கோக்கர்ஸ் வாக்." },
+          { text: "நாள் 2: பில்லர் ராக்ஸ், குணா குகைகள் மற்றும் பைன் காடுகள்." },
+          { text: "நாள் 3: சில்வர் காஸ்கேட் நீர்வீழ்ச்சி மற்றும் திரும்புதல்." }
+        ],
+        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "அனுபவமிக்க ஓட்டுநர்"]
+      },
+      rameswaram: {
+        title: "ராமேஸ்வரம் ஆன்மீக பயணம்",
+        description: "மன அமைதி தரும் ஆன்மீகப் பயணம். ராமநாதசுவாமி கோவிலின் பிரம்மாண்டம் மற்றும் பாம்பன் பாலத்தின் அழகிய காட்சிகளை அனுபவியுங்கள்.",
+        duration: "2 நாட்கள் / 1 இரவு",
+        price: "தொடக்க விலை ₹8,500",
+        itinerary: [
+          { text: "நாள் 1: ராமநாதசுவாமி கோவில், அக்னி தீர்த்தம் மற்றும் தனுஷ்கோடி." },
+          { text: "நாள் 2: அப்துல் கலாம் நினைவகம், பாம்பன் பாலம் மற்றும் திரும்புதல்." }
+        ],
+        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "அனுபவமிக்க ஓட்டுநர்"]
+      },
+      madurai: {
+        title: "மதுரை கோவில் மாநகரம்",
+        description: "மதுரையின் கம்பீரத்தை உணருங்கள். உலகப் புகழ் பெற்ற மீனாட்சி அம்மன் கோவில் மற்றும் வரலாற்றுச் சிறப்புமிக்க அரண்மணைகளை சுற்றிப் பாருங்கள்.",
+        duration: "1 நாள்",
+        price: "தொடக்க விலை ₹3,500",
+        itinerary: [
+          { text: "காலை: மீனாட்சி அம்மன் கோவில் மற்றும் அழகர் கோவில்." },
+          { text: "மாலை: திருமலை நாயக்கர் மஹால் மற்றும் காந்தி அருங்காட்சியகம்." }
+        ],
+        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "அனுபவமிக்க ஓட்டுநர்"]
+      },
+      kanyakumari: {
+        title: "கன்னியாகுமரி சூரிய உதயம்",
+        description: "இந்தியாவின் தென்கோடி முனையில் நின்று கடலின் நடுவே விவேகானந்தர் பாறையை தரிசித்து, கண் கவர் சூரிய உதயத்தை காணுங்கள்.",
+        duration: "2 நாட்கள் / 1 இரவு",
+        price: "தொடக்க விலை ₹9,000",
+        itinerary: [
+          { text: "நாள் 1: வருகை, விவேகானந்தர் பாறை மற்றும் திருவள்ளுவர் சிலை." },
+          { text: "நாள் 2: சூரிய உதயம், சுசீந்திரம் கோவில் மற்றும் திரும்புதல்." }
+        ],
+        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "அனுபவமிக்க ஓட்டுநர்"]
+      },
+      yercaud: {
+        title: "ஏற்காடு பனிப்பொழிவு",
+        description: "கிழக்குத் தொடர்ச்சி மலைகளில் ஒரு அமைதியான ஓய்வு. காபி தோட்டங்கள் மற்றும் பனி படர்ந்த மலை முகடுகளை ரசித்து மகிழுங்கள்.",
+        duration: "2 நாட்கள் / 1 இரவு",
+        price: "தொடக்க விலை ₹6,500",
+        itinerary: [
+          { text: "நாள் 1: ஏற்காடு ஏரி, லேடிஸ் சீட் மற்றும் பகோடா பாயிண்ட்." },
+          { text: "நாள் 2: கிள்ளியூர் நீர்வீழ்ச்சி, ரோஜா தோட்டம் மற்றும் திரும்புதல்." }
+        ],
+        inclusions: ["எரிபொருள் மற்றும் டிரைவர் பேட்டா", "அனுபவமிக்க ஓட்டுநர்"]
       }
     },
     packageForm: {
-      title: "விவரம் பெற",
-      name: "பெயர்",
-      phone: "தொலைபேசி எண்",
+      title: "இந்த திட்டத்தை முன்பதிவு செய்",
+      name: "உங்கள் பெயர்",
+      phone: "மொபைல் எண்",
       date: "பயண தேதி",
-      submit: "அனுப்பவும்"
+      submit: "தகவல் அனுப்பு"
     }
   },
   hi: {
-    brand: "जीवी ट्रेवल्स",
-    subBrand: "तमिलनाडु टैक्सी टूर्स",
+    brand: "GVDROPTAXI",
+    subBrand: "जीवी ट्रैवल्स - तमिलनाडु",
     nav: {
       home: "होम",
       packages: "टूर पैकेज",
-      fleet: "गाड़ियाँ",
-      tariff: "किराया",
+      fleet: "कारें",
+tariff: "किराया",
       reviews: "समीक्षाएं",
       bookNow: "बुक करें",
       call: "24/7 बुकिंग:"
@@ -405,9 +701,22 @@ export const translations = {
       chooseFromFleet: "हमारे प्रीमियम बेड़े से चुनें"
     },
     hero: {
+      tagline: "दक्षिण भारत का सिग्नेचर चयन",
+      titleTop: "सिग्नेचर यात्राएं",
+      titleBottom: "तमिलनाडु",
       subtitle: "तमिलनाडु में प्रीमियम आउटस्टेशन और लोकल कैब बुकिंग सेवा। फिक्स्ड प्राइसिंग और प्रोफेशनल ड्राइवर।",
       bookNow: "अभी बुक करें",
-      chat: "चैट करें"
+      chat: "चैट करें",
+      eliteDispatch: "एलीट डिस्पैच",
+      heritageTours: "भव्य विरासत यात्रा",
+      crystaElite: "क्रिस्टा एलीट सुइट",
+      flagshipPrestige: "प्रमुख प्रतिष्ठा",
+      sanitationTier: "स्वच्छता स्तर",
+      eliteGold: "एलीट गोल्ड",
+      arrivalProtocol: "आगमन प्रोटोकॉल",
+      zeroWait: "शून्य प्रतीक्षा",
+      liveDispatch: "लाइव डिस्पैच",
+      heritageCollections: "सिग्नेचर विरासत संग्रह"
     },
     packages: {
       sectionTitle: "विशेष टूर पैकेज",
@@ -454,6 +763,7 @@ export const translations = {
     packageDetails: {
       velankanni: {
         title: "चेन्नई से वेलंकन्नी 2 दिन",
+        description: "वेलंकन्नी में शांति और आध्यात्मिकता का अनुभव करें। प्रार्थना करें और समुद्र तट के साथ-साथ बेसिलिका के दर्शन का आनंद लें।",
         duration: "2 दिन / 1 रात",
         price: "शुरुआती कीमत ₹8,200",
         itinerary: [
@@ -466,6 +776,7 @@ export const translations = {
       },
       tiruvannamalai: {
         title: "चेन्नई से तिरुवन्नमलाई 2 दिवसीय आध्यात्मिक यात्रा",
+        description: "अरुणाचलेश्वर मंदिर और शांतिपूर्ण आश्रमों में दर्शन करें। गिरिवलम के साथ पवित्र वातावरण का अनुभव करें।",
         duration: "2 दिन / 1 रात",
         price: "शुरुआती कीमत ₹7,499",
         itinerary: [
@@ -478,6 +789,7 @@ export const translations = {
       },
       arupadaiveedu: {
         title: "अरुपदाई वीदु 4 दिवसीय यात्रा",
+        description: "भगवान मुरुगन के 6 पवित्र मंदिरों (अरुपदाई वीदु) की विशेष तीर्थ यात्रा का अनुभव करें और आशीर्वाद प्राप्त करें।",
         duration: "4 दिन / 3 रातें",
         price: "शुरुआती कीमत ₹21,999",
         itinerary: [
@@ -490,6 +802,7 @@ export const translations = {
       },
       panchabhoota: {
         title: "पंच भूत स्थल 5 दिन की यात्रा",
+        description: "प्रकृति के पांच तत्वों का प्रतिनिधित्व करने वाले पवित्र शिव मंदिरों के दर्शन करें। यह यात्रा आपको आध्यात्मिक शांति प्रदान करेगी।",
         duration: "5 दिन / 4 रातें",
         price: "शुरुआती कीमत ₹19,500",
         itinerary: [
@@ -503,6 +816,7 @@ export const translations = {
       },
       kanchipuram: {
         title: "कांचीपुरम और महाबलीपुरम 1 दिन",
+        description: "कांचीपुरम के प्रसिद्ध मंदिरों और रेशम खरीदारी के साथ महाबलीपुरम की सुंदर मूर्तियों का एक दिन में आनंद लें।",
         duration: "1 दिन (12-14 घंटे)",
         price: "शुरुआती कीमत ₹3,800",
         itinerary: [
@@ -515,6 +829,7 @@ export const translations = {
       },
       mahabalipuram: {
         title: "महाबलीपुरम और पांडिचेरी 2 दिन",
+        description: "महाबलीपुरम की ऐतिहासिक वास्तुकला से लेकर पांडिचेरी के फ्रेंच क्वार्टर और शांतिपूर्ण बीच का अनुभव लें।",
         duration: "2 दिन / 1 रात",
         price: "शुरुआती कीमत ₹5,500",
         itinerary: [
@@ -527,6 +842,7 @@ export const translations = {
       },
       tirupati: {
         title: "चेन्नई से तिरुपति 1 दिन",
+        description: "भगवान वेंकटेश्वर के दर्शन के लिए तिरुपति की सुविधाजनक एक दिवसीय यात्रा। सुगम और आरामदायक सफर का आनंद लें।",
         duration: "1 दिन",
         price: "शुरुआती कीमत ₹4,500",
         itinerary: [
@@ -539,6 +855,7 @@ export const translations = {
       },
       pondicherry: {
         title: "पांडिचेरी 3 दिन की यात्रा",
+        description: "पांडिचेरी की शांत सड़कों, ऑरोविले और सुंदर समुद्र तटों पर एक आरामदायक छुट्टी पिताएं।",
         duration: "3 दिन / 2 रातें",
         price: "शुरुआती कीमत ₹7,500",
         itinerary: [
@@ -586,9 +903,22 @@ export const translations = {
       chooseFromFleet: "మా ప్రీమియం వాహనాల నుండి ఎంచుకోండి"
     },
     hero: {
+      tagline: "దక్షిణ భారతదేశంలో సిగ్నేచర్ సెలక్షన్",
+      titleTop: "సిగ్నేచర్ జర్నీస్ త్రూ",
+      titleBottom: "తమిళనాడు",
       subtitle: "తమిళనాడులో ప్రీమియం అవుట్‌స్టేషన్ మరియు లోకల్ క్యాబ్ బుకింగ్ సేవ. ఫిక్స్‌డ్ ధర మరియు ప్రొఫెషనల్ డ్రైవర్లు.",
       bookNow: "ఇప్పుడే బుక్ చేయండి",
-      chat: "చాట్ చేయండి"
+      chat: "చాట్ చేయండి",
+      eliteDispatch: "ఎలైట్ డిస్పాచ్",
+      heritageTours: "గ్రాండ్ హెరిటేజ్ టూర్స్",
+      crystaElite: "క్రిస్టా ఎలైట్ సూట్",
+      flagshipPrestige: "ఫ్లాగ్‌షిప్ ప్రెస్టీజ్",
+      sanitationTier: "శానిటేషన్ టైర్",
+      eliteGold: "ఎలైట్ గోల్డ్",
+      arrivalProtocol: "అరైవల్ ప్రోటోకాల్",
+      zeroWait: "జీరో వెయిట్",
+      liveDispatch: "లైవ్ డిస్పాచ్",
+      heritageCollections: "సిగ్నేచర్ హెరిటేజ్ కలెక్షన్స్"
     },
     packages: {
       sectionTitle: "ప్రత్యేక టూర్ ప్యాకేజీలు",
@@ -635,6 +965,7 @@ export const translations = {
     packageDetails: {
       velankanni: {
         title: "చెన్నై నుండి వేళాంగణ్ణి 2 రోజులు",
+        description: "హైలాండ్స్ అండ్ తీరంలో ప్రశాంతతను ఆస్వాదించండి. అందమైన బసిలికా దర్శనంతో పాటు సముద్ర తీరంలో విహరించండి.",
         duration: "2 రోజులు / 1 రాత్రి",
         price: "ప్రారంభ ధర ₹8,200",
         itinerary: [
@@ -647,6 +978,7 @@ export const translations = {
       },
       tiruvannamalai: {
         title: "చెన్నై నుండి తిరువణ్ణామలై 2 రోజుల యాత్ర",
+        description: "అరుణాచలేశ్వర ఆలయంతో పాటు ఆధ్యాత్మిక ఆశ్రమాలను సందర్శించండి. ప్రఖ్యాత గిరివలంను అనుభూతి చెందండి.",
         duration: "2 రోజులు / 1 రాత్రి",
         price: "ప్రారంభ ధర ₹7,499",
         itinerary: [
@@ -659,6 +991,7 @@ export const translations = {
       },
       arupadaiveedu: {
         title: "అరుపడై వీడు 4 రోజుల యాత్ర",
+        description: "మురుగన్ స్వామి కొలువైన 6 పవిత్ర క్షేత్రాలను సందర్శించి అనంతమైన ఆధ్యాత్మిక ఆనందాన్ని పొందండి.",
         duration: "4 రోజులు / 3 రాత్రులు",
         price: "ప్రారంభ ధర ₹21,999",
         itinerary: [
@@ -671,6 +1004,7 @@ export const translations = {
       },
       panchabhoota: {
         title: "పంచ భూత స్థల 5 రోజుల యాత్ర",
+        description: "పంచ భూతాలకు ప్రతీకైన ఐదు పవిత్ర శివాలయాలను కనులారా దర్శించి ఆధ్యాత్మిక భావనను పెంపొందించుకోండి.",
         duration: "5 రోజులు / 4 రాత్రులు",
         price: "ప్రారంభ ధర ₹19,500",
         itinerary: [
@@ -684,6 +1018,7 @@ export const translations = {
       },
       kanchipuram: {
         title: "కాంచీపురం & మహాబలిపురం 1 రోజు",
+        description: "ఒకే రోజులో కాంచీపురం పట్టు చీరలు, ప్రసిద్ధ ఆలయాలతో పాటు మహాబలిపురం అద్భుత శిల్పకళను దర్శించండి.",
         duration: "1 రోజు (12-14 గంటలు)",
         price: "ప్రారంభ ధర ₹3,800",
         itinerary: [
@@ -696,6 +1031,7 @@ export const translations = {
       },
       mahabalipuram: {
         title: "మహాబలిపురం & పాండిచ్చేరి 2 రోజులు",
+        description: "మహాబలిపురం పురాతన శిల్పాలను ఆస్వాదించి పాండిచ్చేరి తీరాల్లో మరియు ఆరోవిల్ లో ప్రశాంతతను వెదకండి.",
         duration: "2 రోజులు / 1 రాత్రి",
         price: "ప్రారంభ ధర ₹5,500",
         itinerary: [
@@ -708,6 +1044,7 @@ export const translations = {
       },
       tirupati: {
         title: "చెన్నై నుండి తిరుపతి 1 రోజు",
+        description: "తిరుమల శ్రీ వేంకటేశ్వర స్వామి దర్శనార్థం సౌకర్యవంతమైన, అనుకూలమైన ఒక రోజు ప్రయాణం.",
         duration: "1 రోజు",
         price: "ప్రారంభ ధర ₹4,500",
         itinerary: [
@@ -720,6 +1057,7 @@ export const translations = {
       },
       pondicherry: {
         title: "పాండిచ్చేరి 3 రోజుల యాత్ర",
+        description: "పాండిచ్చేరి అద్భుతమైన ఫ్రెంచ్ ఆర్కిటెక్చర్, బీచ్‌లు మరియు ఆరోవిల్ ఆశ్రమం అందాలను ఆస్వాదించండి.",
         duration: "3 రోజులు / 2 రాత్రులు",
         price: "ప్రారంభ ధర ₹7,500",
         itinerary: [
@@ -767,9 +1105,22 @@ export const translations = {
       chooseFromFleet: "ನಮ್ಮ ಪ್ರೀಮಿಯಂ ವಾಹನಗಳಿಂದ ಆರಿಸಿ"
     },
     hero: {
+      tagline: "ದಕ್ಷಿಣ ಭಾರತದ ಸಿಗ್ನೇಚರ್ ಆಯ್ಕೆ",
+      titleTop: "ಸಿಗ್ನೇಚರ್ ಜರ್ನಿ ತ್ರೂ",
+      titleBottom: "ತಮಿಳುನಾಡು",
       subtitle: "ತಮಿಳುನಾಡಿನಲ್ಲಿ ಪ್ರೀಮಿಯಂ ಔಟ್‌ಸ್ಟೇಷನ್ ಮತ್ತು ಲೋಕಲ್ ಕ್ಯಾಬ್ ಬುಕಿಂಗ್ ಸೇವೆ. ನಿಗದಿತ ದರ ಮತ್ತು ವೃತ್ತಿಪರ ಚಾಲಕರು.",
       bookNow: "ಈಗಲೇ ಬುಕ್ ಮಾಡಿ",
-      chat: "ಚಾಟ್ ಮಾಡಿ"
+      chat: "ಚಾಟ್ ಮಾಡಿ",
+      eliteDispatch: "ಎಲೈಟ್ ಡಿಸ್ಪ್ಯಾಚ್",
+      heritageTours: "ಗ್ರ್ಯಾಂಡ್ ಹೆರಿಟೇಜ್ ಟೂರ್ಸ್",
+      crystaElite: "ಕ್ರಿಸ್ಟಾ ಎಲೈಟ್ ಸೂಟ್",
+      flagshipPrestige: "ಫ್ಲ್ಯಾಗ್‌ಶಿಪ್ ಪ್ರೆಸ್ಟೀಜ್",
+      sanitationTier: "ಸ್ಯಾನಿಟೈಸೇಶನ್ ಟೈರ್",
+      eliteGold: "ಎಲೈಟ್ ಗೋಲ್ಡ್",
+      arrivalProtocol: "ಅರೈವಲ್ ಪ್ರೊಟೊಕಾಲ್",
+      zeroWait: "ಜೀರೊ ವೇಟ್",
+      liveDispatch: "ಲೈವ್ ಡಿಸ್ಪ್ಯಾಚ್",
+      heritageCollections: "ಸಿಗ್ನೇಚರ್ ಹೆರಿಟೇಜ್ ಕಲೆಕ್ಷನ್ಸ್"
     },
     packages: {
       sectionTitle: "ವಿಶೇಷ ಪ್ರವಾಸ ಪ್ಯಾಕೇಜುಗಳು",
@@ -816,6 +1167,7 @@ export const translations = {
     packageDetails: {
       velankanni: {
         title: "ಚೆನ್ನೈನಿಂದ ವೇಲಾಂಗಣ್ಣಿ 2 ದಿನಗಳು",
+        description: "ಪುಣ್ಯಭೂಮಿಯ ಪ್ರಶಾಂತತೆ ಮತ್ತು ಸಮುದ್ರತೀರದ ಆಹ್ಲಾದಕರ ಅನುಭವ. ಸುಂದರವಾದ ಬೆಸಿಲಿಕಾ ದರ್ಶನ ಪಡೆಯಿರಿ.",
         duration: "2 ದಿನಗಳು / 1 ರಾತ್ರಿ",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹8,200",
         itinerary: [
@@ -827,7 +1179,8 @@ export const translations = {
         inclusions: ["ಇಂಧನ ಮತ್ತು ಚಾಲಕ ಭತ್ಯೆ", "ಸೆಡಾನ್: ₹8,200", "SUV: ₹10,750", "ವೃತ್ತಿಪರ ಚಾಲಕ"]
       },
       tiruvannamalai: {
-        title: "ಚೆನ್ನೈನಿಂದ ತಿರುವಣ್ಣಾಮಲೈ 2 ದಿನಗಳ ಯಾತ್ರೆ",
+        title: "ಚೆన్నೈನಿಂದ ತಿರುವಣ್ಣಾಮಲೈ 2 ದಿನಗಳ ಯಾತ್ರೆ",
+        description: "ಅರುಣಾಚಲೇಶ್ವರ ದೇವಾಲಯ ಮತ್ತು ಶಾಂತಿಯುತ ಆಶ್ರಮಗಳ ಭೇಟಿ. ಪ್ರಸಿದ್ಧ ಗಿರಿವಲಂ ಪ್ರದಕ್ಷಿಣೆ ಅನುಭವಿಸಿ.",
         duration: "2 ದಿನಗಳು / 1 ರಾತ್ರಿ",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹7,499",
         itinerary: [
@@ -840,6 +1193,7 @@ export const translations = {
       },
       arupadaiveedu: {
         title: "ಅರುಪದೈ ವೀಡು 4 ದಿನಗಳ ಯಾತ್ರೆ",
+        description: "ಮುರುಗನ್ ಸ್ವಾಮಿಯ ಆರು ಪವಿತ್ರ ಪುಣ್ಯಕ್ಷೇತ್ರಗಳ ದರ್ಶನ ಮತ್ತು ಅನಂತ ಆಧ್ಯಾತ್ಮಿಕ ಶಾಂತಿಯ ಅನುಭವ.",
         duration: "4 ದಿನಗಳು / 3 ರಾತ್ರಿಗಳು",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹21,999",
         itinerary: [
@@ -852,6 +1206,7 @@ export const translations = {
       },
       panchabhoota: {
         title: "ಪಂಚ ಭೂತ ಸ್ಥಳ 5 ದಿನಗಳ ಯಾತ್ರೆ",
+        description: "ಪಂಚ ಭೂತಗಳನ್ನು ಪ್ರತಿನಿಧಿಸುವ ಐದು ಪ್ರಮುಖ ಶಿವ ದೇವಾಲಯಗಳ ದರ್ಶನ ಪಡೆದು ಆಧ್ಯಾತ್ಮಿಕವಾಗಿ ಆನಂದಿಸಿ.",
         duration: "5 ದಿನಗಳು / 4 ರಾತ್ರಿಗಳು",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹19,500",
         itinerary: [
@@ -865,6 +1220,7 @@ export const translations = {
       },
       kanchipuram: {
         title: "ಕಾಂಚೀಪುರಂ ಮತ್ತು ಮಹಾಬಲಿಪುರಂ 1 ದಿನ",
+        description: "ಒಂದೇ ದಿನದಲ್ಲಿ ಕಾಂಚೀಪುರಂ ದೇವಸ್ಥಾನಗಳು, ಸಿಲ್ಕ್ ಸೀರೆಗಳ ಶಾಪಿಂಗ್ ಮತ್ತು ಮಹಾಬಲಿಪುರಂ ಶಿಲ್ಪಕಲೆಗಳ ದರ್ಶನ.",
         duration: "1 ದಿನ (12-14 ಗಂಟೆಗಳು)",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹3,800",
         itinerary: [
@@ -877,6 +1233,7 @@ export const translations = {
       },
       mahabalipuram: {
         title: "ಮಹಾಬಲಿಪುರಂ ಮತ್ತು ಪಾಂಡಿಚೇರಿ 2 ದಿನಗಳು",
+        description: "ಪ್ರಾಚೀನ ಶಿಲ್ಪಕಲೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ ಪಾಂಡಿಚೇರಿಯ ಸುಂದರ ಬೀಚ್‌ಗಳು, ಫ್ರೆಂಚ್ ವಾಸ್ತುಶಿಲ್ಪದಲ್ಲಿ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ.",
         duration: "2 ದಿನಗಳು / 1 ರಾತ್ರಿ",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹5,500",
         itinerary: [
@@ -889,6 +1246,7 @@ export const translations = {
       },
       tirupati: {
         title: "ಚೆನ್ನೈನಿಂದ ತಿರುಪತಿ 1 ದಿನ",
+        description: "ತಿರುಮಲ ಶ್ರೀ ವೆಂಕಟೇಶ್ವರ ಸ್ವಾಮಿ ದರ್ಶನಕ್ಕಾಗಿ ಆರಾಮದಾಯಕ ಮತ್ತು ಸುಲಭವಾದ ಒಂದು ದಿನದ ಪ್ರವಾಸ.",
         duration: "1 ದಿನ",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹4,500",
         itinerary: [
@@ -901,6 +1259,7 @@ export const translations = {
       },
       pondicherry: {
         title: "ಪಾಂಡಿಚೇರಿ 3 ದಿನಗಳ ಯಾತ್ರೆ",
+        description: "ಪಾಂಡಿಚೇರಿಯ ಸುಂದರ ಫ್ರೆಂಚ್ ಕ್ವಾರ್ಟರ್ಸ್, ಶುದ್ಧ ಬೀಚ್‌ಗಳು ಮತ್ತು ಆರೋವಿಲ್ಲೆ ಆಶ್ರಮವನ್ನು ಆನಂದಿಸಿ.",
         duration: "3 ದಿನಗಳು / 2 ರಾತ್ರಿಗಳು",
         price: "ಆರಂಭಿಕ ಬೆಲೆ ₹7,500",
         itinerary: [

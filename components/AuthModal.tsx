@@ -96,84 +96,84 @@ const AuthModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500"
         onClick={closeAuthModal}
       ></div>
 
-      <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 transition-colors">
-        <div className="bg-geevee-dark p-8 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-            <Logo className="w-64 h-64 -translate-y-12 translate-x-32 rotate-12" isLight />
+      <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[3.5rem] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] animate-in zoom-in duration-500 transition-colors border border-white/10">
+        <div className="bg-slate-900 p-12 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+            <Logo className="w-80 h-80 -translate-y-20 translate-x-40 rotate-12" isLight />
           </div>
           <button 
             onClick={closeAuthModal} 
-            className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
+            className="absolute top-8 right-8 text-white/30 hover:text-white transition-all bg-white/5 hover:bg-white/10 p-2 rounded-xl"
           >
             <X size={24} />
           </button>
           
-          <div className="relative z-10">
-            <h3 className="text-2xl font-black text-white mb-2">Welcome to Geevee Travels</h3>
-            <p className="text-geevee-orange text-[10px] font-black uppercase tracking-[0.2em]">
-              {mode === 'LOGIN' ? 'Access Your Account' : 'Create New Account'}
+          <div className="relative z-10 pt-10">
+            <h3 className="text-4xl font-bold text-white mb-4 tracking-tighter">Elite Member Access</h3>
+            <p className="text-geevee-orange text-[10px] font-bold uppercase tracking-[0.3em] opacity-80">
+              {mode === 'LOGIN' ? 'Credential Verification Required' : 'Initialize New Account'}
             </p>
           </div>
         </div>
 
-        <div className="p-8 md:p-10">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
+        <div className="p-12 md:p-16">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2">Secure Electronic Mail</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600" size={18} />
+                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600" size={20} />
                 <input 
                   type="email" 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-white/5 border-2 border-slate-100 dark:border-white/10 rounded-xl py-3 pl-12 pr-4 font-bold text-slate-900 dark:text-white outline-none focus:border-geevee-orange transition-all"
-                  placeholder="you@example.com"
+                  className="w-full bg-slate-50 dark:bg-white/5 border-2 border-transparent focus:border-geevee-orange/20 rounded-2xl py-5 pl-16 pr-6 font-bold text-slate-900 dark:text-white outline-none transition-all shadow-sm"
+                  placeholder="name@domain.com"
                 />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Password</label>
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2">Authentication Key</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600" size={18} />
+                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600" size={20} />
                 <input 
                   type="password" 
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-white/5 border-2 border-slate-100 dark:border-white/10 rounded-xl py-3 pl-12 pr-4 font-bold text-slate-900 dark:text-white outline-none focus:border-geevee-orange transition-all"
+                  className="w-full bg-slate-50 dark:bg-white/5 border-2 border-transparent focus:border-geevee-orange/20 rounded-2xl py-5 pl-16 pr-6 font-bold text-slate-900 dark:text-white outline-none transition-all shadow-sm"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 text-xs font-bold p-4 rounded-xl flex items-start gap-3 border border-red-100 animate-in slide-in-from-top-2">
-                <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                <p>{error}</p>
+              <div className="bg-red-500/10 text-red-500 text-[10px] font-bold p-5 rounded-2xl flex items-start gap-4 border border-red-500/20 animate-in slide-in-from-top-2 tracking-wide uppercase">
+                <AlertCircle size={18} className="shrink-0" />
+                <p className="leading-relaxed">{error}</p>
               </div>
             )}
 
             <button 
               type="submit" 
               disabled={isLoading || isGoogleLoading}
-              className="w-full bg-geevee-orange text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-orange-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 mt-4"
+              className="w-full premium-glass-btn-solid py-6 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 luxury-click"
             >
-              {isLoading ? <Loader2 className="animate-spin" /> : (mode === 'LOGIN' ? 'Login' : 'Sign Up')} 
+              {isLoading ? <Loader2 className="animate-spin" /> : (mode === 'LOGIN' ? 'Verify Identity' : 'Establish Account')} 
               {!isLoading && <ArrowRight size={20} />}
             </button>
 
-            <div className="relative py-4">
+            <div className="relative py-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-100 dark:border-white/10"></div>
+                <div className="w-full border-t border-slate-100 dark:border-white/5"></div>
               </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
-                <span className="bg-white dark:bg-slate-900 px-4 text-slate-400">Or continue with</span>
+              <div className="relative flex justify-center text-[9px] uppercase font-bold tracking-[0.3em]">
+                <span className="bg-white dark:bg-slate-900 px-6 text-slate-400 dark:text-slate-600">Unified Auth Protocol</span>
               </div>
             </div>
 
@@ -181,7 +181,7 @@ const AuthModal: React.FC = () => {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isLoading || isGoogleLoading}
-              className="w-full bg-white dark:bg-white/5 border-2 border-slate-100 dark:border-white/10 text-slate-900 dark:text-white py-4 rounded-2xl font-black text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+              className="w-full premium-glass-btn py-5 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-sm active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-4 luxury-click"
             >
               {isGoogleLoading ? (
                 <Loader2 className="animate-spin" size={20} />
@@ -205,21 +205,21 @@ const AuthModal: React.FC = () => {
                   />
                 </svg>
               )}
-              Continue with Google
+              Google Identity Platform
             </button>
 
-            <div className="text-center pt-4">
-              <p className="text-xs font-medium text-slate-400">
-                {mode === 'LOGIN' ? "Don't have an account? " : "Already have an account? "}
+            <div className="text-center pt-8">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em]">
+                {mode === 'LOGIN' ? "Not a member yet? " : "Already registered? "}
                 <button 
                   type="button"
                   onClick={() => {
                     setMode(mode === 'LOGIN' ? 'SIGNUP' : 'LOGIN');
                     setError(null);
                   }}
-                  className="text-geevee-dark dark:text-white font-black hover:underline"
+                  className="text-slate-900 dark:text-white font-black hover:text-geevee-orange transition-colors underline underline-offset-4"
                 >
-                  {mode === 'LOGIN' ? 'Sign Up' : 'Login'}
+                  {mode === 'LOGIN' ? 'Initiate Registration' : 'Access Now'}
                 </button>
               </p>
             </div>

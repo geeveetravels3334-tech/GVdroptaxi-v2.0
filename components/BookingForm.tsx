@@ -1,20 +1,26 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Phone, MapPin, Calendar, Clock, CheckCircle2, Search, Car, RefreshCcw, Loader2, ChevronDown, ChevronUp, Check, Navigation, AlertTriangle, Calculator, TicketPercent } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Phone, MapPin, Calendar, Clock, CheckCircle2, Search, Car, RefreshCcw, Loader2, ChevronDown, ChevronUp, Check, Navigation, AlertTriangle, Calculator, TicketPercent, ArrowRight, MessageSquare, X } from 'lucide-react';
 import { ServiceType } from '../types.ts';
 import { useLanguage } from '../contexts/LanguageContext.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { BookingService } from '../services/booking.ts';
 import { ReferralService } from '../services/referral.ts';
-import { DETAILED_VEHICLES } from '../constants.tsx';
+import { usePricing } from '../contexts/PricingContext.tsx';
 import { calculateTripFare } from '../utils/pricing.ts';
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
 const WHATSAPP_BOOKING_NUMBER = '9025743325';
 
 interface LocationSuggestion {
   display_name: string;
-  lat: string;
-  lon: string;
+  place_id?: string;
+  lat?: string;
+  lon?: string;
+  main_text?: string;
+  secondary_text?: string;
+  matched_substrings?: google.maps.places.PredictionSubstring[];
 }
 
 interface RouteInfo {
@@ -29,9 +35,58 @@ interface FareEstimate {
   discountApplied?: number;
 }
 
+interface SuggestionListProps {
+  suggestions: LocationSuggestion[];
+  onSelect: (suggestion: LocationSuggestion) => void;
+  renderHighlight: (text: string, matches?: google.maps.places.PredictionSubstring[]) => React.ReactNode;
+}
+
+const SuggestionList: React.FC<SuggestionListProps> = ({ suggestions, onSelect, renderHighlight }) => (
+  <AnimatePresence>
+    {suggestions.length > 0 && (
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 5 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="absolute top-[calc(100%+0.75rem)] left-0 right-0 bg-[#040812]/95 backdrop-blur-xl rounded-[2rem] shadow-[0_24px_56px_-12px_rgba(0,0,0,0.85)] border border-white/10 overflow-hidden z-[100] ring-1 ring-white/5 will-change-transform"
+      >
+        <div className="max-h-[320px] overflow-y-auto premium-scrollbar">
+          {suggestions.map((s, i) => (
+            <button 
+              key={`${s.display_name}-${i}`} 
+              type="button" 
+              onClick={() => onSelect(s)} 
+              className="w-full text-left px-8 py-5 hover:bg-white/10 transition-all text-[11px] font-bold text-[#D1D5DB] border-b border-white/5 last:border-0 flex items-center gap-5 group/suggest outline-none focus:bg-white/10"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover/suggest:bg-[#D4AF37]/10 group-hover/suggest:border-[#D4AF37]/30 border border-transparent transition-all duration-300">
+                <MapPin size={16} className="opacity-40 group-hover/suggest:text-[#D4AF37] group-hover/suggest:opacity-100 group-hover/suggest:scale-110 transition-all" /> 
+              </div>
+              <div className="flex flex-col">
+                <div className="text-[13px] md:text-sm tracking-tight font-serif italic text-white group-hover/suggest:text-[#D4AF37] transition-colors">
+                  {renderHighlight(s.display_name.split(',')[0], s.matched_substrings)}
+                </div>
+                {s.secondary_text && (
+                  <span className="text-[9px] font-mono font-bold text-[#9CA3AF] uppercase tracking-widest mt-0.5 opacity-60 group-hover/suggest:opacity-100 transition-opacity">
+                    {s.secondary_text}
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
 const BookingForm: React.FC = () => {
   const { t, language, fontClass } = useLanguage();
   const { user } = useAuth();
+  const { vehicles: DETAILED_VEHICLES, loading: isPricingLoading } = usePricing();
+  
+  const placesLib = useMapsLibrary('places');
+  const geocodingLib = useMapsLibrary('geocoding');
 
   const [service, setService] = useState<ServiceType>(ServiceType.ONE_WAY);
   const [pickup, setPickup] = useState('');
@@ -99,10 +154,13 @@ const BookingForm: React.FC = () => {
   const filteredVehicles = useMemo(() => {
     let list = DETAILED_VEHICLES;
     if (service === ServiceType.ONE_WAY) {
-      list = list.filter(v => v.pricing.outstation.oneWay !== "NOT AVAILABLE");
+      list = list.filter(v => {
+        const oneWayPrice = v.pricing.outstation.oneWay;
+        return typeof oneWayPrice === 'number' || (typeof oneWayPrice === 'string' && oneWayPrice.toUpperCase() !== "NOT AVAILABLE");
+      });
     }
     return list;
-  }, [service]);
+  }, [service, DETAILED_VEHICLES]);
 
   useEffect(() => {
     const checkHistory = async () => {
@@ -151,7 +209,33 @@ const BookingForm: React.FC = () => {
     }
   }, [distanceKm, selectedVehicle, service, referralDiscount, isReferralValid, isPromoValid, promoDiscount, date, returnDate]);
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const routesLib = useMapsLibrary('routes');
+
+  const calculateDistance = async (lat1: number, lon1: number, lat2: number, lon2: number): Promise<{distance: number, durationText: string, distanceText: string}> => {
+    if (!routesLib) return { distance: 0, durationText: '', distanceText: '' };
+    
+    const service = new routesLib.DistanceMatrixService();
+    try {
+      const response = await service.getDistanceMatrix({
+        origins: [{lat: lat1, lng: lon1}],
+        destinations: [{lat: lat2, lng: lon2}],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+      });
+
+      if (response.rows[0]?.elements[0]?.status === google.maps.DistanceMatrixElementStatus.OK) {
+        const element = response.rows[0].elements[0];
+        return {
+          distance: (element.distance.value / 1000) * 1.05, // adding 5% real world buffer
+          distanceText: element.distance.text,
+          durationText: element.duration.text
+        };
+      }
+    } catch (e) {
+      console.error("Distance matrix failed", e);
+    }
+    
+    // Fallback to Haversine
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -160,63 +244,224 @@ const BookingForm: React.FC = () => {
               Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const d = R * c;
-    return d * 1.28;
+    const dist = d * 1.25;
+    
+    const hours = Math.floor(dist / 52); 
+    const mins = Math.round(((dist / 52) - hours) * 60);
+
+    return { 
+      distance: dist, 
+      distanceText: `${Math.round(dist)} KM`, 
+      durationText: `${hours > 0 ? `${hours}h ` : ''}${mins}m` 
+    };
   };
 
   useEffect(() => {
-    if (pickupCoords && dropCoords) {
-      setIsCalculatingRoute(true);
-      const dist = calculateDistance(pickupCoords[0], pickupCoords[1], dropCoords[0], dropCoords[1]);
-      setDistanceKm(dist);
-
-      const hours = Math.floor(dist / 52); 
-      const mins = Math.round(((dist / 52) - hours) * 60);
-      
-      const timer = setTimeout(() => {
+    const fetchDistance = async () => {
+      if (pickupCoords && dropCoords) {
+        setIsCalculatingRoute(true);
+        const result = await calculateDistance(pickupCoords[0], pickupCoords[1], dropCoords[0], dropCoords[1]);
+        setDistanceKm(result.distance);
         setRouteInfo({
-          distanceDisplay: `${Math.round(dist)} KM`,
-          durationDisplay: `${hours > 0 ? `${hours}h ` : ''}${mins}m`
+          distanceDisplay: result.distanceText,
+          durationDisplay: result.durationText
         });
         setIsCalculatingRoute(false);
-      }, 600);
-      
-      return () => clearTimeout(timer);
-    } else {
-      setRouteInfo(null);
-      setDistanceKm(0);
-      setIsCalculatingRoute(false);
-    }
-  }, [pickupCoords, dropCoords]);
+      } else {
+        setRouteInfo(null);
+        setDistanceKm(0);
+        setIsCalculatingRoute(false);
+      }
+    };
+    fetchDistance();
+  }, [pickupCoords, dropCoords, routesLib]);
+
+  const suggestionsCache = useRef<Record<string, LocationSuggestion[]>>({});
+
+  const POPULAR_CITIES: LocationSuggestion[] = [
+    { display_name: 'Chennai' },
+    { display_name: 'Bangalore' },
+    { display_name: 'Madurai' },
+    { display_name: 'Kochi' },
+    { display_name: 'Tirupati' },
+    { display_name: 'Coimbatore' },
+    { display_name: 'Pondicherry' },
+    { display_name: 'Hyderabad' },
+    { display_name: 'Mysore' },
+    { display_name: 'Vijayawada' },
+    { display_name: 'Salem' },
+    { display_name: 'Trichy' },
+    { display_name: 'Vellore' },
+    { display_name: 'Tanjore' },
+    { display_name: 'Valasaravakkam' },
+    { display_name: 'Koyambedu' },
+    { display_name: 'Tambaram' },
+    { display_name: 'Nellikuppam' },
+    { display_name: 'Mahabalipuram' }
+  ];
 
   const handleSearch = (query: string, type: 'pickup' | 'drop') => {
+    const trimmedQuery = query.trim();
     if (type === 'pickup') setPickup(query);
     else setDrop(query);
+    
     const timeoutRef = type === 'pickup' ? pickupTimeoutRef : dropTimeoutRef;
     if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    if (query.length >= 3) {
-      timeoutRef.current = window.setTimeout(() => { fetchSuggestions(query, type); }, 1000);
+    
+    if (trimmedQuery.length < 1) {
+      if (type === 'pickup') setPickupSuggestions(POPULAR_CITIES);
+      else setDropSuggestions(POPULAR_CITIES);
+      return;
     }
+
+    // PERFORMANCE: Instant local matching for common South India hubs
+    // This gives an "intelligent" feel by providing top matches before the API returns
+    const normalizedQuery = trimmedQuery.toLowerCase();
+    const localMatches = POPULAR_CITIES.filter(city => {
+      const cityName = city.display_name.toLowerCase();
+      return cityName.startsWith(normalizedQuery) || cityName.split(' ').some(word => word.startsWith(normalizedQuery));
+    }).map(city => {
+      const cityName = city.display_name.toLowerCase();
+      const offset = cityName.indexOf(normalizedQuery);
+      return {
+        ...city,
+        matched_substrings: offset !== -1 ? [{ offset, length: normalizedQuery.length }] : []
+      };
+    });
+
+    if (localMatches.length > 0) {
+      if (type === 'pickup') setPickupSuggestions(localMatches);
+      else setDropSuggestions(localMatches);
+    }
+
+    // Check cache for instant results if we've searched before
+    const cacheKey = `${normalizedQuery}`;
+    if (suggestionsCache.current[cacheKey]) {
+      const cachedResults = suggestionsCache.current[cacheKey];
+      if (type === 'pickup') setPickupSuggestions(cachedResults);
+      else setDropSuggestions(cachedResults);
+      return;
+    }
+
+    // Trigger high-speed API search
+    timeoutRef.current = window.setTimeout(() => { 
+      fetchSuggestions(trimmedQuery, type); 
+    }, 250); // Balanced for performance and responsiveness
   };
 
-  const fetchSuggestions = async (query: string, type: 'pickup' | 'drop') => {
+  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+
+  const fetchSuggestions = (query: string, type: 'pickup' | 'drop') => {
+    if (!placesLib) return;
+    
+    if (!autocompleteServiceRef.current) {
+      autocompleteServiceRef.current = new placesLib.AutocompleteService();
+    }
+    
     const setter = type === 'pickup' ? setIsSearchingPickup : setIsSearchingDrop;
     const suggestionsSetter = type === 'pickup' ? setPickupSuggestions : setDropSuggestions;
+    
+    // Quick validation check for visual feedback
+    if (query.length > 2) {
+      // Clear error if typing
+    }
+
     setter(true);
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Tamil Nadu')}&limit=5`);
-      const data = await response.json();
-      suggestionsSetter(data);
-    } catch (e) { setSearchError("Search issue. Please try again."); }
-    finally { setter(false); }
+    
+    const cacheKey = `${query.toLowerCase().trim()}`;
+    
+    // Bounds covering South India (approx 8N to 20N, 74E to 85E)
+    // Covers TN, KL, KA, AP, TS and Pondicherry
+    const southIndiaBounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(8.0, 74.0),
+      new google.maps.LatLng(19.5, 83.5)
+    );
+    
+    autocompleteServiceRef.current.getPlacePredictions({
+      input: query,
+      types: ['(regions)'], // Bias towards cities, towns, and regions
+      componentRestrictions: { country: 'in' },
+      bounds: southIndiaBounds
+    }, (predictions, status) => {
+      setter(false);
+      if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+        // Strict filtering to remove businesses, street addresses, and non-geographic types
+        const filteredPredictions = predictions.filter(p => {
+          const t = p.types;
+          // Only allow localities, sublocalities, and administrative areas (cities/towns)
+          const isGeographic = t.some(type => 
+            ['locality', 'sublocality', 'administrative_area_level_3', 'neighborhood', 'political'].includes(type)
+          );
+          const isEstablishment = t.includes('establishment') || t.includes('point_of_interest');
+          const isPostal = t.includes('postal_code');
+          
+          return isGeographic && !isEstablishment && !isPostal;
+        });
+
+        const results = filteredPredictions.map((p) => ({
+          display_name: p.structured_formatting.main_text,
+          place_id: p.place_id,
+          main_text: p.structured_formatting.main_text,
+          secondary_text: p.structured_formatting.secondary_text,
+          matched_substrings: p.structured_formatting.main_text_matched_substrings,
+        }));
+
+        // Store in cache
+        suggestionsCache.current[cacheKey] = results;
+        suggestionsSetter(results);
+      } else {
+        suggestionsSetter([]);
+      }
+    });
+  };
+
+  const renderHighlightedText = (text: string, matches?: google.maps.places.PredictionSubstring[]) => {
+    if (!matches || matches.length === 0) return <span>{text}</span>;
+
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+
+    // Google API returns matches in order, but we sort to be safe
+    [...matches].sort((a, b) => a.offset - b.offset).forEach((match, i) => {
+      // Add regular text before match
+      if (match.offset > lastIndex) {
+        parts.push(<span key={`text-${i}`} className="opacity-70">{text.substring(lastIndex, match.offset)}</span>);
+      }
+      // Add highlighted part
+      parts.push(
+        <span key={`match-${i}`} className="text-[#D4AF37] font-black group-hover:text-[#FCF6BA] transition-colors relative">
+          {text.substring(match.offset, match.offset + match.length)}
+          <span className="absolute bottom-0 left-0 w-full h-[1px] bg-[#D4AF37]/30 blur-[0.5px]"></span>
+        </span>
+      );
+      lastIndex = match.offset + match.length;
+    });
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(<span key="text-end" className="opacity-70">{text.substring(lastIndex)}</span>);
+    }
+
+    return <div className="flex items-center gap-0.5">{parts}</div>;
   };
 
   const handleSelectSuggestion = (suggestion: LocationSuggestion, type: 'pickup' | 'drop') => {
     let name = suggestion.display_name.split(',')[0];
     name = name.replace(/District/gi, '').trim();
 
-    const coords: [number, number] = [parseFloat(suggestion.lat), parseFloat(suggestion.lon)];
-    if (type === 'pickup') { setPickup(name); setPickupCoords(coords); setPickupSuggestions([]); }
-    else { setDrop(name); setDropCoords(coords); setDropSuggestions([]); }
+    if (type === 'pickup') { setPickup(name); setPickupSuggestions([]); }
+    else { setDrop(name); setDropSuggestions([]); }
+
+    if (!geocodingLib || !suggestion.place_id) return;
+    const geocoder = new geocodingLib.Geocoder();
+    geocoder.geocode({ placeId: suggestion.place_id }, (results, status) => {
+      if (status === 'OK' && results && results[0]) {
+        const location = results[0].geometry.location;
+        const coords: [number, number] = [location.lat(), location.lng()];
+        if (type === 'pickup') setPickupCoords(coords);
+        else setDropCoords(coords);
+      }
+    });
   };
 
   const handleVehicleSelect = (id: string) => { 
@@ -288,10 +533,6 @@ const BookingForm: React.FC = () => {
       alert("Please enter a valid 10-digit mobile number to proceed.");
       return;
     }
-    const whatsappWindow = window.open('', '_blank');
-    if (whatsappWindow) {
-      whatsappWindow.document.write(`<html><head><title>Redirecting...</title></head><body style="background:#f0f9ff; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:sans-serif; color:#0f172a;"><div style="text-align:center"><h2>Processing your booking...</h2><div style="margin-top:20px; width:40px; height:40px; border:4px solid #F37021; border-top:4px solid transparent; border-radius:50%; animation:spin 1s linear infinite; margin-left:auto; margin-right:auto;"></div><style>@keyframes spin {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style></div></body></html>`);
-    }
     setIsSubmitting(true);
     let finalDiscountAmount = 0;
     let appliedCode = null;
@@ -316,16 +557,23 @@ const BookingForm: React.FC = () => {
       referralCode: appliedCode,
       discountAmount: finalDiscountAmount
     };
+
     try {
+      // 1. Save to database immediately
       let finalBookingId = '';
       try {
         const savedBooking = await BookingService.saveBooking(bookingData);
         finalBookingId = savedBooking.bookingId;
       } catch (dbError) {
-        finalBookingId = `OFF-${Date.now().toString().slice(-6)}`;
+        finalBookingId = `GEE-${Date.now().toString().slice(-6)}`;
       }
       setBookingId(finalBookingId);
-      let msg = `*New Booking Request ${finalBookingId}*\n*Geevee Travels*\nService: ${service}\nPickup: ${pickup}\nDrop: ${drop}\nDate: ${date}\nTime: ${time}`;
+
+      // 2. Show success state
+      setIsSuccess(true);
+
+      // 3. Prepare and redirect to WhatsApp
+      let msg = `*Booking Confirmed ✅*\n*Geevee Travels*\n\nStatus: CONFIRMED\n\nService: ${service}\nPickup: ${pickup}\nDrop: ${drop}\nDate: ${date}\nTime: ${time}`;
       if (service === ServiceType.ROUND_TRIP && returnDate) {
         msg += `\nReturn Date: ${returnDate}`;
       }
@@ -344,318 +592,487 @@ const BookingForm: React.FC = () => {
         msg += `\n(${fareEstimate.breakdown})`;
       }
       msg += `\n\nBooking ID: ${finalBookingId}`;
+      
       const waUrl = `https://wa.me/91${WHATSAPP_BOOKING_NUMBER}?text=${encodeURIComponent(msg)}`;
-      if (whatsappWindow) whatsappWindow.location.href = waUrl;
-      else window.location.href = waUrl;
-      setIsSuccess(true);
+      
+      // Auto redirect after a short delay so user sees success screen briefly
+      setTimeout(() => {
+        window.open(waUrl, '_blank');
+      }, 1500);
+
     } catch (criticalError) {
-      if (whatsappWindow) whatsappWindow.close();
-      alert("Unexpected error processing request.");
+      alert("Error processing booking. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (isSuccess) return (
-    <div className="glass-card rounded-[4rem] p-16 md:p-24 text-center shadow-3xl max-w-5xl mx-auto animate-in zoom-in duration-500 transform-gpu transition-colors">
-      <div className="w-32 h-32 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-10 shadow-inner animate-[bounce_1s_infinite]">
-        <CheckCircle2 size={64} />
+    <div className="bg-[#0B0F1A] border border-[#D4AF37]/20 rounded-[2.5rem] md:rounded-[3.5rem] p-8 sm:p-16 md:p-24 text-center shadow-[0_24px_64px_-16px_rgba(0,0,0,0.6)] max-w-5xl mx-auto animate-in zoom-in duration-500 relative overflow-hidden">
+      {/* Cinematic Lighting Refraction & Sunset Glow Backlight */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/10 via-transparent to-transparent opacity-40 pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#D4AF37]/15 via-transparent to-transparent opacity-80 mix-blend-color-dodge z-0 animate-slow-pulse pointer-events-none"></div>
+
+      <div className="relative z-10">
+        <div className="w-28 h-28 bg-[#D4AF37]/10 text-[#D4AF37] rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-[#D4AF37]/25 shadow-[0_15px_30px_rgba(212,175,55,0.15)] animate-[pulse_2s_infinite]">
+          <CheckCircle2 size={56} />
+        </div>
+        <h2 className="text-4xl md:text-6xl font-normal text-white mb-6 tracking-tight font-serif italic" style={{ fontFamily: 'var(--font-serif)' }}>
+          Journey <span className="text-luxury-gold-soft italic font-normal">Initiated</span>
+        </h2>
+        <div className="inline-block bg-white/5 border border-white/10 px-6 py-2.5 rounded-xl mb-8">
+           <p className="text-[#D4AF37] font-mono font-bold tracking-widest text-xs uppercase">Booking ID: <span className="text-white font-sans">{bookingId}</span></p>
+        </div>
+        <p className="text-[#D1D5DB] text-xl font-medium max-w-2xl mx-auto mb-12 leading-relaxed">
+          {t.booking.successDesc}
+        </p>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          <a 
+            href={`https://wa.me/91${WHATSAPP_BOOKING_NUMBER}?text=${encodeURIComponent('Hi GVDROPTAXI, I just made a booking with ID: ' + (bookingId || ''))}`}
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-green-500 hover:bg-green-600 text-white px-12 py-5 rounded-2xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl active:scale-95 flex items-center justify-center gap-3 w-full md:w-auto"
+          >
+            <MessageSquare size={20} /> Open WhatsApp Chat
+          </a>
+          <button 
+            onClick={handleReset}
+            className="bg-white/5 hover:bg-white/10 text-white px-8 py-5 rounded-2xl font-bold text-sm transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 w-full md:w-auto border border-white/10"
+          >
+            <RefreshCcw size={16} /> Book Another
+          </button>
+        </div>
       </div>
-      <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">{t.booking.success}</h2>
-      <div className="inline-block bg-white/20 dark:bg-white/5 px-6 py-2 rounded-xl mb-8">
-         <p className="text-slate-600 dark:text-slate-400 font-bold tracking-widest text-sm uppercase">Booking ID: <span className="text-slate-900 dark:text-white">{bookingId}</span></p>
-      </div>
-      <p className="text-slate-600 dark:text-slate-400 text-xl font-medium max-w-2xl mx-auto mb-12 leading-relaxed">
-        {t.booking.successDesc}
-      </p>
-      <button 
-        onClick={handleReset}
-        className="bg-slate-900 dark:bg-geevee-orange text-white px-12 py-5 rounded-2xl font-black text-lg hover:bg-geevee-orange dark:hover:bg-orange-600 transition-all shadow-xl hover:shadow-2xl active:scale-95 flex items-center justify-center gap-3 mx-auto"
-      >
-        <RefreshCcw size={20} /> Book Another Trip
-      </button>
     </div>
   );
 
   return (
-    <div className="relative transform-gpu">
-      {/* Replaced solid background with glass-card class */}
-      <div className="relative glass-card rounded-[3.5rem] p-4 md:p-12 shadow-3xl max-w-4xl mx-auto flex flex-col gap-8 transform-gpu transition-colors backdrop-blur-xl">
-        {/* Left Side: Form */}
-        <div className="w-full">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className={`text-3xl font-black text-slate-900 dark:text-white ${fontClass}`}>{t.nav.bookNow}</h2>
+    <div 
+      id="booking-form"
+      className="relative transform-gpu animate-slide-up"
+    >
+      {/* Frosted glass form container */}
+      <div className="relative rounded-[2.5rem] md:rounded-[3rem] p-8 lg:p-12 xl:p-16 shadow-[0_32px_80px_rgba(0,0,0,0.6)] max-w-7xl mx-auto transform-gpu transition-all duration-1000 bg-gradient-to-b from-[#111827]/85 via-[#0B0F1A]/95 to-[#0B0F1A] backdrop-blur-xl border border-[#D4AF37]/20 hover:border-[#D4AF37]/45 shadow-[0_0_50px_rgba(212,175,55,0.05)]">
+        
+        {/* Glow Effects */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/5 via-transparent to-transparent opacity-45 pointer-events-none z-0"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#D4AF37]/10 via-transparent to-transparent opacity-80 z-0 animate-pulse-soft pointer-events-none"></div>
+
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 relative z-10">
+          {/* Left Side: Form Controls */}
+          <div className="flex-grow lg:w-7/12">
+            <div className="mb-10 md:mb-12">
+              <h2 className={`text-4xl md:text-6xl text-white ${fontClass} tracking-tight mb-4`} style={{ fontFamily: 'var(--font-serif)' }}>
+                Secure <span className="text-luxury-gold-soft italic font-normal">Your Journey</span>
+              </h2>
+              <p className="text-[#9CA3AF] font-medium text-lg">
+                {t.hero.bookNow || "Experience premium custom travel planning tailored to your destination."}
+              </p>
+            </div>
             
             {/* Service Type Toggles */}
-            <div className="flex bg-white/40 dark:bg-white/5 p-1.5 rounded-xl gap-1 border border-white/20">
+            <div className="flex bg-white/5 backdrop-blur-lg p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] gap-1.5 md:gap-2 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] mb-10 md:mb-12 w-full sm:w-fit">
               {[ServiceType.ONE_WAY, ServiceType.ROUND_TRIP].map((st) => (
                 <button
                   key={st}
+                  type="button"
                   onClick={() => { setService(st); setSelectedVehicleId(null); setFareEstimate(null); }}
-                  className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all transform-gpu ${service === st ? 'bg-white dark:bg-slate-800 text-geevee-dark dark:text-white shadow-md' : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                  className={`flex-1 sm:flex-none px-4 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-[1.5rem] text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] transition-all duration-500 ${service === st ? 'bg-gradient-to-r from-[#D4AF37] to-[#B38E22] text-[#040812] shadow-[0_10px_25px_-5px_rgba(212,175,55,0.3)] scale-105' : 'text-[#9CA3AF] hover:text-white'}`}
                 >
                   {st === ServiceType.ONE_WAY ? t.booking.onewaydrop : t.booking.roundtrip}
                 </button>
               ))}
             </div>
-          </div>
 
-          <form onSubmit={handleBooking} className="space-y-6 relative z-10">
-            {/* Location Inputs with Suggestions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative">
-              <div className="relative group z-30">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-geevee-orange transition-colors">
-                  {isSearchingPickup ? <Loader2 className="animate-spin" size={20} /> : <MapPin size={20} />}
-                </div>
-                <input 
-                  type="text" 
-                  value={pickup}
-                  onChange={(e) => handleSearch(e.target.value, 'pickup')}
-                  placeholder={ph.pickup}
-                  className="w-full bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-slate-800 border-2 border-transparent focus:border-geevee-orange rounded-2xl py-5 pl-14 pr-4 font-bold text-slate-700 dark:text-white outline-none transition-all text-sm shadow-sm focus:shadow-xl"
-                />
-                {pickupSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 mt-2 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                    {pickupSuggestions.map((s, i) => (
-                      <button key={i} type="button" onClick={() => handleSelectSuggestion(s, 'pickup')} className="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-xs font-bold text-slate-600 dark:text-slate-300 border-b border-slate-50 dark:border-white/5 last:border-0 flex items-center gap-2">
-                        <MapPin size={12} className="text-slate-300 dark:text-slate-600" /> {s.display_name.split(',')[0]}
-                      </button>
-                    ))}
+            <form onSubmit={handleBooking} className="space-y-8 md:space-y-10 relative z-10">
+              {/* Location Inputs with Suggestions - Grid Refactoring for Compactness */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 relative">
+                <div className="relative group z-30">
+                  <div className="flex items-center justify-between mb-2 md:mb-4 ml-2">
+                    <label className="block text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.35em] font-mono">Departure Vector</label>
+                    <AnimatePresence>
+                      {pickupCoords && (
+                        <motion.span 
+                          initial={{ scale: 0, opacity: 0 }} 
+                          animate={{ scale: 1, opacity: 1 }} 
+                          className="text-[#D4AF37] flex items-center gap-1 text-[8px] font-bold uppercase tracking-tighter"
+                        >
+                          <Check size={10} strokeWidth={3} /> Verified
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </div>
-                )}
-              </div>
-
-              <div className="relative group z-20">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-geevee-orange transition-colors">
-                  {isSearchingDrop ? <Loader2 className="animate-spin" size={20} /> : <Navigation size={20} />}
-                </div>
-                <input 
-                  type="text" 
-                  value={drop}
-                  onChange={(e) => handleSearch(e.target.value, 'drop')}
-                  placeholder={ph.drop}
-                  className="w-full bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-slate-800 border-2 border-transparent focus:border-geevee-orange rounded-2xl py-5 pl-14 pr-4 font-bold text-slate-700 dark:text-white outline-none transition-all text-sm shadow-sm focus:shadow-xl"
-                />
-                {dropSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 mt-2 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                    {dropSuggestions.map((s, i) => (
-                      <button key={i} type="button" onClick={() => handleSelectSuggestion(s, 'drop')} className="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-xs font-bold text-slate-600 dark:text-slate-300 border-b border-slate-50 dark:border-white/5 last:border-0 flex items-center gap-2">
-                        <Navigation size={12} className="text-slate-300 dark:text-slate-600" /> {s.display_name.split(',')[0]}
+                  <div className="relative">
+                    <div className="absolute left-5 md:left-6 top-1/2 -translate-y-1/2 text-[#9CA3AF] group-focus-within:text-[#D4AF37] transition-all duration-500 group-focus-within:scale-110 z-10 pointer-events-none">
+                      {isSearchingPickup ? <Loader2 className="animate-spin w-5 h-5 md:w-6 md:h-6 text-[#BF953F]" /> : <MapPin className="w-5 h-5 md:w-6 md:h-6" />}
+                    </div>
+                    <input 
+                      type="text" 
+                      value={pickup}
+                      onChange={(e) => handleSearch(e.target.value, 'pickup')}
+                      onFocus={(e) => handleSearch(e.target.value, 'pickup')}
+                      onBlur={() => setTimeout(() => setPickupSuggestions([]), 300)}
+                      placeholder={ph.pickup}
+                      autoComplete="off"
+                      className={`w-full bg-white/5 border ${pickupCoords ? 'border-[#D4AF37]/40 ring-1 ring-[#D4AF37]/10' : 'border-white/10'} focus:border-[#D4AF37]/50 focus:ring-4 focus:ring-[#D4AF37]/5 rounded-xl md:rounded-[1.75rem] py-4 md:py-6 pl-14 md:pl-16 pr-10 md:pr-12 font-bold text-white outline-none transition-all text-sm md:text-base placeholder-[#9CA3AF]/60 focus:shadow-[0_0_40px_rgba(212,175,55,0.15)] backdrop-blur-sm`}
+                    />
+                    {pickup && (
+                      <button 
+                         type="button" 
+                         onClick={() => { setPickup(''); setPickupCoords(null); setPickupSuggestions(POPULAR_CITIES); }}
+                         className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2 text-[#9CA3AF] hover:text-[#D4AF37] transition-colors z-10"
+                      >
+                         <X size={16} />
                       </button>
-                    ))}
+                    )}
+                    <SuggestionList 
+                      suggestions={pickupSuggestions} 
+                      onSelect={(s) => handleSelectSuggestion(s, 'pickup')} 
+                      renderHighlight={renderHighlightedText} 
+                    />
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Date & Time */}
-            <div className={`grid grid-cols-1 ${service === ServiceType.ROUND_TRIP ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-5`}>
-              <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-geevee-orange transition-colors"><Calendar size={20} /></div>
-                <input 
-                  type="date" 
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-slate-800 border-2 border-transparent focus:border-geevee-orange rounded-2xl py-5 pl-14 pr-4 font-bold text-slate-700 dark:text-white outline-none transition-all text-sm shadow-sm focus:shadow-xl uppercase tracking-widest"
-                />
+                <div className="relative group z-20">
+                  <div className="flex items-center justify-between mb-2 md:mb-4 ml-2">
+                    <label className="block text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.35em] font-mono">Destination Point</label>
+                    <AnimatePresence>
+                      {dropCoords && (
+                        <motion.span 
+                          initial={{ scale: 0, opacity: 0 }} 
+                          animate={{ scale: 1, opacity: 1 }} 
+                          className="text-[#D4AF37] flex items-center gap-1 text-[8px] font-bold uppercase tracking-tighter"
+                        >
+                          <Check size={10} strokeWidth={3} /> Target Locked
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute left-5 md:left-6 top-1/2 -translate-y-1/2 text-[#9CA3AF] group-focus-within:text-[#D4AF37] transition-all duration-500 group-focus-within:scale-110 z-10 pointer-events-none">
+                      {isSearchingDrop ? <Loader2 className="animate-spin w-5 h-5 md:w-6 md:h-6 text-[#BF953F]" /> : <Navigation className="w-5 h-5 md:w-6 md:h-6" />}
+                    </div>
+                    <input 
+                      type="text" 
+                      value={drop}
+                      onChange={(e) => handleSearch(e.target.value, 'drop')}
+                      onFocus={(e) => handleSearch(e.target.value, 'drop')}
+                      onBlur={() => setTimeout(() => setDropSuggestions([]), 300)}
+                      placeholder={ph.drop}
+                      autoComplete="off"
+                      className={`w-full bg-white/5 border ${dropCoords ? 'border-[#D4AF37]/40 ring-1 ring-[#D4AF37]/10' : 'border-white/10'} focus:border-[#D4AF37]/50 focus:ring-4 focus:ring-[#D4AF37]/5 rounded-xl md:rounded-[1.75rem] py-4 md:py-6 pl-14 md:pl-16 pr-10 md:pr-12 font-bold text-white outline-none transition-all text-sm md:text-base placeholder-[#9CA3AF]/60 focus:shadow-[0_0_40px_rgba(212,175,55,0.15)] backdrop-blur-sm`}
+                    />
+                    {drop && (
+                      <button 
+                        type="button" 
+                        onClick={() => { setDrop(''); setDropCoords(null); setDropSuggestions(POPULAR_CITIES); }}
+                        className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2 text-[#9CA3AF] hover:text-[#D4AF37] transition-colors z-10"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                    <SuggestionList 
+                      suggestions={dropSuggestions} 
+                      onSelect={(s) => handleSelectSuggestion(s, 'drop')} 
+                      renderHighlight={renderHighlightedText} 
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-geevee-orange transition-colors"><Clock size={20} /></div>
-                <input 
-                  type="time" 
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-full bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-slate-800 border-2 border-transparent focus:border-geevee-orange rounded-2xl py-5 pl-14 pr-4 font-bold text-slate-700 dark:text-white outline-none transition-all text-sm shadow-sm focus:shadow-xl uppercase tracking-widest"
-                />
+
+              {/* Compact Grid for Mobile: Date and Time on one row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                <div className="col-span-1 relative group">
+                  <label className="block text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.35em] mb-2 md:mb-4 ml-2 font-mono">Launch Date</label>
+                  <div className="relative">
+                    <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-[#9CA3AF] group-focus-within:text-[#D4AF37] transition-all"><Calendar size={16} /></div>
+                    <input 
+                      type="date" 
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className={`w-full bg-white/5 border ${date ? 'border-[#D4AF37]/30' : 'border-white/10'} focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 rounded-xl md:rounded-[1.5rem] py-4 md:py-6 pl-12 md:pl-16 pr-4 font-bold text-white outline-none transition-all text-[11px] md:text-sm uppercase tracking-wider backdrop-blur-sm`}
+                    />
+                  </div>
+                </div>
+                <div className="col-span-1 relative group">
+                  <label className="block text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.35em] mb-2 md:mb-4 ml-2 font-mono">Time Slot</label>
+                  <div className="relative">
+                    <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-[#9CA3AF] group-focus-within:text-[#D4AF37] transition-all"><Clock size={16} /></div>
+                    <input 
+                      type="time" 
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className={`w-full bg-white/5 border ${time ? 'border-[#D4AF37]/30' : 'border-white/10'} focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 rounded-xl md:rounded-[1.5rem] py-4 md:py-6 pl-12 md:pl-16 pr-4 font-bold text-white outline-none transition-all text-[11px] md:text-sm uppercase tracking-wider backdrop-blur-sm`}
+                    />
+                  </div>
+                </div>
+                {service === ServiceType.ROUND_TRIP ? (
+                  <div className="col-span-1 relative group">
+                    <label className="block text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.35em] mb-2 md:mb-4 ml-2 font-mono">Return Sync</label>
+                    <div className="relative">
+                      <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-[#9CA3AF] group-focus-within:text-[#D4AF37] transition-all"><Calendar size={16} /></div>
+                      <input 
+                        type="date" 
+                        value={returnDate}
+                        min={date}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        className={`w-full bg-white/5 border ${returnDate ? 'border-[#D4AF37]/30' : 'border-white/10'} focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 rounded-xl md:rounded-[1.5rem] py-4 md:py-6 pl-12 md:pl-16 pr-4 font-bold text-white outline-none transition-all text-[11px] md:text-sm uppercase tracking-wider backdrop-blur-sm`}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                <div className={`${service === ServiceType.ROUND_TRIP ? 'col-span-1' : 'col-span-2 sm:col-span-1'} relative group`}>
+                  <label className="block text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.35em] mb-2 md:mb-4 ml-2 font-mono">Mobile Link</label>
+                  <div className="relative">
+                    <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-[#9CA3AF] group-focus-within:text-[#D4AF37] transition-all"><Phone size={16} /></div>
+                    <input 
+                      type="tel" 
+                      value={mobile}
+                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder={ph.mobile}
+                      className={`w-full bg-white/5 border ${mobile.length === 10 ? 'border-[#D4AF37]/30' : 'border-white/10'} focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 rounded-xl md:rounded-[1.5rem] py-4 md:py-6 pl-12 md:pl-16 pr-4 font-bold text-white outline-none transition-all text-[11px] md:text-sm backdrop-blur-sm`}
+                    />
+                  </div>
+                </div>
               </div>
-              {service === ServiceType.ROUND_TRIP && (
-                <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-geevee-orange transition-colors"><Calendar size={20} /></div>
-                  <input 
-                    type="date" 
-                    value={returnDate}
-                    min={date}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    className="w-full bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-slate-800 border-2 border-transparent focus:border-geevee-orange rounded-2xl py-5 pl-14 pr-4 font-bold text-slate-700 dark:text-white outline-none transition-all text-sm shadow-sm focus:shadow-xl uppercase tracking-widest"
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pointer-events-none hidden lg:block">Return</div>
+
+              {/* Collapsible Vehicle Selection */}
+              {isBaseInfoFilled && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                  <div 
+                    className={`bg-white/5 border-2 ${selectedVehicleId ? 'border-[#D4AF37]/60 shadow-[0_20px_50px_rgba(212,175,55,0.15)]' : 'border-white/10 hover:border-[#D4AF37]/35'} rounded-3xl p-6 md:p-8 cursor-pointer transition-all duration-500 group relative overflow-hidden`}
+                    onClick={() => setShowVehicleSelection(!showVehicleSelection)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <div className={`p-4 rounded-2xl transition-all duration-700 ${selectedVehicleId ? 'bg-[#D4AF37] text-[#040812] shadow-2xl scale-110' : 'bg-white/5 text-[#9CA3AF] border border-white/10'}`}>
+                          <Car size={28} />
+                        </div>
+                        <div>
+                          <span className="block text-[11px] font-black text-[#D4AF37] uppercase tracking-[0.5em] mb-1 font-mono">Executive Fleet</span>
+                          <h4 className={`text-xl md:text-2xl font-serif italic ${selectedVehicleId ? 'text-white' : 'text-[#9CA3AF]'}`}>
+                            {selectedVehicle?.name || t.booking.selectVehicle}
+                          </h4>
+                        </div>
+                      </div>
+                      <div className={`transition-all duration-700 flex items-center justify-center w-10 h-10 bg-white/5 border border-white/10 rounded-full shadow-lg ${showVehicleSelection ? 'rotate-180 bg-[#D4AF37] text-[#040812]' : 'text-[#9CA3AF] group-hover:scale-110 group-hover:border-[#D4AF37]/45'}`}>
+                        <ChevronDown size={20} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={`grid transition-all duration-700 ease-in-out overflow-hidden ${showVehicleSelection ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                    <div className="overflow-hidden">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pt-4 font-sans">
+                        {isPricingLoading ? (
+                          <div className="col-span-full py-20 flex flex-col items-center justify-center text-[#9CA3AF]">
+                             <Loader2 size={32} className="animate-spin mb-4 text-[#D4AF37]" />
+                             <p className="text-[10px] font-mono font-bold uppercase tracking-[0.3em]">Loading Premium Fleet...</p>
+                          </div>
+                        ) : filteredVehicles.map((v) => (
+                          <div 
+                            key={v.id}
+                            onClick={() => handleVehicleSelect(v.id)}
+                            className={`group relative p-4 md:p-6 rounded-3xl border-2 cursor-pointer transition-all duration-500 hover:-translate-y-1 ${selectedVehicleId === v.id ? 'border-[#D4AF37]/80 bg-[#D4AF37]/10 shadow-2xl shadow-[#D4AF37]/10' : 'border-white/10 bg-white/5 hover:border-[#D4AF37]/40 hover:bg-white/10'}`}
+                          >
+                            <div className="flex flex-col gap-3 md:gap-4">
+                              <div className="flex justify-between items-start">
+                                <h5 className="font-serif text-white italic text-base md:text-lg tracking-tight group-hover:text-[#D4AF37] transition-colors">{v.name}</h5>
+                                <div className={`p-1.5 md:p-2 rounded-lg md:rounded-xl transition-all duration-500 ${selectedVehicleId === v.id ? 'bg-[#D4AF37] text-[#040812] shadow-lg' : 'bg-white/5 text-[#9CA3AF] group-hover:text-[#D4AF37] group-hover:bg-[#D4AF37]/10'}`}>
+                                  <Car size={14} className="md:w-4 md:h-4" />
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                 <div className="flex items-center gap-2 md:gap-3">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
+                                    <p className="text-[8px] md:text-[9px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em]">{v.capacity} Seats{v.type === 'SUV' && ' • Elite'}</p>
+                                 </div>
+                                 <p className="text-lg md:text-xl font-normal text-[#FCF6BA] tracking-tight font-serif italic">₹{service === ServiceType.ONE_WAY ? v.pricing.outstation.oneWay : v.pricing.outstation.roundTrip}<span className="text-[9px] md:text-[10px] text-[#9CA3AF] font-mono ml-1 uppercase">/km</span></p>
+                              </div>
+                            </div>
+                            {selectedVehicleId === v.id && (
+                               <div className="absolute top-3 right-3 md:top-4 md:right-4 animate-in zoom-in duration-500">
+                                  <div className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] text-[#040812] p-1 rounded-full shadow-lg"><Check size={10} className="md:w-3 md:h-3" /></div>
+                                </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
-            </div>
 
-            {/* Mobile Number */}
-            <div className="relative group">
-              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-geevee-orange transition-colors"><Phone size={20} /></div>
-              <input 
-                type="tel" 
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                placeholder={ph.mobile}
-                className="w-full bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-slate-800 border-2 border-transparent focus:border-geevee-orange rounded-2xl py-5 pl-14 pr-4 font-bold text-slate-700 dark:text-white outline-none transition-all text-sm shadow-sm focus:shadow-xl tracking-widest"
-              />
-            </div>
+              {/* Gold Premium Submit CTA for Mobile */}
+              <button 
+                type="submit" 
+                disabled={isSubmitting || !selectedVehicleId}
+                className="lg:hidden w-full bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:from-[#FCF6BA] hover:via-[#BF953F] hover:to-[#FCF6BA] text-[#040812] py-6 rounded-[1.5rem] md:rounded-2xl font-black text-base disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-4 group active:scale-[0.98] uppercase tracking-[0.3em] shadow-[0_15px_30px_rgba(212,175,55,0.25)] hover:shadow-[0_20px_40px_rgba(212,175,55,0.4)] transition-all duration-500"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin text-[#040812]" size={24} /> Synchronizing...
+                  </>
+                ) : (
+                  <>
+                    {t.booking.confirm} <ArrowRight size={20} className="group-hover:translate-x-3 transition-transform duration-500 text-[#040812]" />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
 
-            {/* Collapsible Vehicle Selection */}
-            {isBaseInfoFilled && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div 
-                  className={`bg-white/40 dark:bg-white/5 border-2 ${selectedVehicleId ? 'border-geevee-orange' : 'border-white/20 dark:border-white/5'} rounded-2xl p-5 cursor-pointer shadow-sm hover:shadow-md transition-all group backdrop-blur-sm`}
-                  onClick={() => setShowVehicleSelection(!showVehicleSelection)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-xl ${selectedVehicleId ? 'bg-geevee-orange text-white' : 'bg-white/50 dark:bg-white/5 text-slate-400 dark:text-slate-500'}`}>
-                        <Car size={24} />
-                      </div>
-                      <div>
-                        <span className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Selected Vehicle</span>
-                        <h4 className={`text-lg font-black ${selectedVehicleId ? 'text-geevee-dark dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
-                          {selectedVehicle?.name || t.booking.selectVehicle}
-                        </h4>
-                      </div>
+          {/* Right Side: Summary & Valuation (5/12 width or fixed equivalent) */}
+          <div className="lg:w-5/12 flex flex-col gap-8">
+            {selectedVehicleId && fareEstimate ? (
+              <div className="sticky top-32 space-y-8 animate-in fade-in slide-in-from-right-12 duration-1000">
+                <div className="bg-[#040812] text-white rounded-[3rem] p-10 md:p-12 relative overflow-hidden shadow-[0_48px_128px_-16px_rgba(0,0,0,0.6)] border border-[#D4AF37]/25 group transition-all duration-700 min-h-[500px] flex flex-col justify-between">
+                  {/* Glowing highlights inside dynamic valuation summary card */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/10 via-transparent to-transparent opacity-40 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none z-0"></div>
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#D4AF37]/10 via-transparent to-transparent opacity-80 mix-blend-color-dodge pointer-events-none animate-slow-pulse z-0"></div>
+                  <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-1000 z-0 pointer-events-none"><Calculator size={200} /></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-5 mb-8">
+                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><Calculator size={24} className="text-[#D4AF37]" /></div>
+                      <span className="text-[10px] font-mono font-black text-[#9CA3AF] uppercase tracking-[0.5em] z-10">Valuation Certificate</span>
                     </div>
-                    <div className={`transform transition-transform duration-300 ${showVehicleSelection ? 'rotate-180' : ''} text-slate-400 dark:text-slate-600`}>
-                      <ChevronDown />
-                    </div>
-                  </div>
-                </div>
 
-                <div className={`grid transition-all duration-500 ease-in-out overflow-hidden ${showVehicleSelection ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-1">
-                      {filteredVehicles.map((v) => (
-                        <div 
-                          key={v.id}
-                          onClick={() => handleVehicleSelect(v.id)}
-                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all hover:scale-[1.02] ${selectedVehicleId === v.id ? 'border-geevee-orange bg-orange-50/50 dark:bg-geevee-orange/10' : 'border-transparent hover:border-slate-200 dark:hover:border-white/20 bg-white/40 dark:bg-white/5 backdrop-blur-sm'}`}
-                        >
-                          <div className="flex-grow">
-                            <h5 className="font-bold text-slate-900 dark:text-white text-sm">{v.name}</h5>
-                            <div className="flex justify-between items-center mt-1">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{v.capacity} Seater</span>
-                              <span className="text-xs font-black text-geevee-orange">₹{v.pricePerKm}/km</span>
-                            </div>
+                    <div className="space-y-8 mb-12">
+                         <div>
+                          <p className="text-[10px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em] mb-4">Route Metrics</p>
+                          <div className="grid grid-cols-2 gap-4">
+                             <div className="bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-[#D4AF37]/20 transition-all text-center">
+                                <Navigation size={14} className="text-[#D4AF37] mx-auto mb-2" />
+                                <div className="h-7 display-flex items-center justify-center">
+                                  {isCalculatingRoute ? <Loader2 size={16} className="animate-spin text-[#D4AF37] mx-auto opacity-70" /> : <p className="text-xl font-serif text-[#FCF6BA] italic">{routeInfo?.distanceDisplay || '--'}</p>}
+                                </div>
+                                <p className="text-[9px] font-mono font-bold text-[#9CA3AF] uppercase mt-2">Distance</p>
+                             </div>
+                             <div className="bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-[#D4AF37]/20 transition-all text-center">
+                                <Clock size={14} className="text-[#D4AF37] mx-auto mb-2" />
+                                <div className="h-7 display-flex items-center justify-center">
+                                  {isCalculatingRoute ? <Loader2 size={16} className="animate-spin text-[#D4AF37] mx-auto opacity-70" /> : <p className="text-xl font-serif text-[#FCF6BA] italic">{routeInfo?.durationDisplay || '--'}</p>}
+                                </div>
+                                <p className="text-[9px] font-mono font-bold text-[#9CA3AF] uppercase mt-2">Est. Duration</p>
+                             </div>
                           </div>
-                          {selectedVehicleId === v.id && <CheckCircle2 className="text-geevee-orange" size={20} />}
-                        </div>
-                      ))}
+                       </div>
+
+                       <div>
+                          <p className="text-[10px] font-mono font-gray-500 uppercase tracking-[0.3em] mb-2">Protocol Details</p>
+                          {isCalculatingRoute ? <div className="h-10 w-full animate-pulse bg-white/5 rounded-lg"></div> : (
+                            <div className="space-y-4">
+                              <p className="text-sm text-slate-300 leading-relaxed italic opacity-85 whitespace-pre-line">{fareEstimate?.breakdown || 'Awaiting route selection...'}</p>
+                              {fareEstimate?.amount ? (
+                                <div className="flex flex-wrap gap-2 text-[8px] font-mono font-bold text-[#FCF6BA] uppercase tracking-widest mt-2">
+                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Driver Bata Extra</span>
+                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Toll Extra</span>
+                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Permit Extra</span>
+                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Hills Charges Extra</span>
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
+                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
 
-            {/* Offers & Estimate Section */}
-            {selectedVehicleId && fareEstimate && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                
-                {/* Coupon Toggle */}
-                <div className="mb-4">
+                  <div className="relative z-10 border-t border-white/10 pt-10 mt-auto">
+                    {fareEstimate?.discountApplied ? (
+                         <div className="space-y-4">
+                            <div className="flex justify-between items-end">
+                               <span className="text-sm text-slate-450 font-mono font-bold uppercase tracking-widest opacity-60">Valuation:</span>
+                               <span className="text-2xl text-slate-500 line-through font-serif italic">₹{fareEstimate.originalAmount}</span>
+                            </div>
+                            <div className="flex justify-between items-end">
+                               <span className="text-sm text-[#D4AF37] font-mono font-bold uppercase tracking-widest">Digital Gain:</span>
+                               <span className="text-xl text-green-400 font-bold">-₹{fareEstimate.discountApplied}</span>
+                            </div>
+                            <div className="flex justify-between items-end pt-6">
+                               <span className="text-[11px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.4em]">Final Quote</span>
+                               <span className="text-7xl font-normal text-[#FCF6BA] tracking-tight drop-shadow-[0_0_35px_rgba(212,175,55,0.25)] font-serif italic">₹{fareEstimate.amount}</span>
+                            </div>
+                         </div>
+                      ) : (
+                         <div className="flex justify-between items-end">
+                            <div>
+                               <p className="text-[10px] text-slate-450 font-mono font-bold uppercase tracking-[0.5em] mb-4">Ultimate Valuation</p>
+                               <span className="text-7xl font-normal text-[#FCF6BA] tracking-tight font-serif italic drop-shadow-[0_0_35px_rgba(212,175,55,0.25)]">{fareEstimate?.amount ? `₹${fareEstimate.amount}` : '--'}</span>
+                            </div>
+                         </div>
+                      )}
+                      
+                      {/* Premium Gold CTA for Desktop */}
+                      <button 
+                        onClick={handleBooking}
+                        disabled={isSubmitting}
+                        className="hidden lg:flex w-full bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:from-[#FCF6BA] hover:via-[#BF953F] hover:to-[#FCF6BA] text-[#040812] py-6 rounded-2xl font-black text-xs uppercase tracking-[0.25em] transition-all duration-500 mt-10 items-center justify-center gap-4 group shadow-[0_15px_30px_rgba(212,175,55,0.25)] hover:shadow-[0_20px_40px_rgba(212,175,55,0.4)]"
+                      >
+                         {isSubmitting ? <Loader2 className="animate-spin text-[#040812]" size={20} /> : <>{t.booking.confirm} <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform text-[#040812]" /></>}
+                      </button>
+                  </div>
+                </div>
+
+                {/* Coupon Access Toggle styled as beautiful frosted metal */}
+                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8">
                    <button 
                      type="button" 
                      onClick={() => setShowOffersInput(!showOffersInput)}
-                     className="text-xs font-black text-geevee-orange hover:text-orange-700 flex items-center gap-2 transition-colors uppercase tracking-widest"
+                     className="w-full flex items-center justify-between text-[11px] font-mono font-black uppercase tracking-[0.4em] text-[#9CA3AF] hover:text-[#D4AF37] transition-colors"
                    >
-                     {showOffersInput ? <ChevronUp size={14} /> : <ChevronDown size={14} />} 
-                     Have a Promo Code?
+                     <div className="flex items-center gap-3">
+                        <TicketPercent size={18} className="text-[#D4AF37]" />
+                        Apply Exclusive Privilege
+                     </div>
+                     {showOffersInput ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                    </button>
                    
                    {showOffersInput && (
-                     <div className="mt-3 bg-white/40 dark:bg-white/5 p-4 rounded-2xl flex flex-col gap-3 border border-white/20 dark:border-white/10 animate-in slide-in-from-top-2 backdrop-blur-sm">
-                        {/* Promo Input */}
+                     <div className="mt-8 space-y-4 animate-in slide-in-from-top-4 duration-500 font-sans">
                         <div className="flex gap-2">
                            <input 
                              type="text" 
-                             placeholder="Promo Code" 
+                             placeholder="PROMO ARCHIVE" 
                              value={promoCode}
-                             onChange={(e) => setPromoCode(e.target.value)}
+                             onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                              disabled={isReferralValid}
-                             className="flex-grow bg-white dark:bg-slate-800 px-4 py-2 rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 focus:border-geevee-orange dark:focus:border-geevee-orange outline-none disabled:opacity-50 dark:text-white"
+                             className="flex-grow bg-[#040812] border border-white/10 p-4 rounded-xl text-[10px] font-black uppercase outline-none focus:border-[#D4AF37]/60 text-white placeholder-slate-600 focus:ring-2 focus:ring-[#D4AF37]/20"
                            />
-                           <button 
-                             type="button" 
-                             onClick={handleApplyPromo}
-                             disabled={isCheckingPromo || isReferralValid || !promoCode}
-                             className="bg-slate-900 dark:bg-geevee-orange text-white px-4 rounded-xl font-bold text-xs disabled:opacity-50"
-                           >
-                             {isCheckingPromo ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
-                           </button>
+                           <button onClick={handleApplyPromo} className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:scale-105 active:scale-95 text-[#040812] px-6 py-4.5 rounded-xl font-bold text-[10px] uppercase transition-all shadow-[0_5px_15px_rgba(212,175,55,0.15)] flex items-center justify-center">Verify</button>
                         </div>
-                        {isPromoValid && <p className="text-[10px] text-green-600 dark:text-green-400 font-bold flex items-center gap-1"><Check size={10} /> Code Applied! 10% Discount included.</p>}
-                        {promoError && <p className="text-[10px] text-red-500 font-bold flex items-center gap-1"><AlertTriangle size={10} /> {promoError}</p>}
-
-                        <div className="h-px bg-slate-200 dark:bg-white/10 w-full"></div>
-
-                        {/* Referral Input */}
                         <div className="flex gap-2">
                            <input 
                              type="text" 
-                             placeholder="Referral Code" 
+                             placeholder="AFFILIATE LINK" 
                              value={referralCode}
-                             onChange={(e) => setReferralCode(e.target.value)}
+                             onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                              disabled={isPromoValid}
-                             className="flex-grow bg-white dark:bg-slate-800 px-4 py-2 rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 focus:border-geevee-orange dark:focus:border-geevee-orange outline-none disabled:opacity-50 dark:text-white"
+                             className="flex-grow bg-[#040812] border border-white/10 p-4 rounded-xl text-[10px] font-black uppercase outline-none focus:border-[#D4AF37]/60 text-white placeholder-slate-600 focus:ring-2 focus:ring-[#D4AF37]/20"
                            />
-                           <button 
-                             type="button" 
-                             onClick={handleApplyReferral}
-                             disabled={isCheckingReferral || isPromoValid || !referralCode}
-                             className="bg-slate-900 dark:bg-geevee-orange text-white px-4 rounded-xl font-bold text-xs disabled:opacity-50"
-                           >
-                             {isCheckingReferral ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
-                           </button>
+                           <button onClick={handleApplyReferral} className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:scale-105 active:scale-95 text-[#040812] px-6 py-4.5 rounded-xl font-bold text-[10px] uppercase transition-all shadow-[0_5px_15px_rgba(212,175,55,0.15)] flex items-center justify-center">Verify</button>
                         </div>
-                        {isReferralValid && <p className="text-[10px] text-green-600 dark:text-green-400 font-bold flex items-center gap-1"><Check size={10} /> Referral Valid! ₹{referralDiscount} OFF included.</p>}
-                        {referralError && <p className="text-[10px] text-red-500 font-bold flex items-center gap-1"><AlertTriangle size={10} /> {referralError}</p>}
+                        {isPromoValid && <p className="text-[9px] text-green-400 font-mono font-bold uppercase tracking-widest text-center">FIRST10 Integrated</p>}
+                        {isReferralValid && <p className="text-[9px] text-green-400 font-mono font-bold uppercase tracking-widest text-center">Legacy Credit Validated</p>}
                      </div>
                    )}
                 </div>
-
-                <div className="bg-geevee-dark text-white p-6 rounded-[2rem] relative overflow-hidden shadow-xl border border-white/5">
-                  <div className="absolute top-0 right-0 p-6 opacity-5"><Calculator size={100} /></div>
-                  
-                  <div className="relative z-10">
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Fare</span>
-                      <div className="text-right">
-                        {fareEstimate.discountApplied ? (
-                           <>
-                             <span className="block text-sm text-slate-400 line-through font-bold">₹{fareEstimate.originalAmount}</span>
-                             <span className="text-3xl font-black text-green-400">₹{fareEstimate.amount}</span>
-                           </>
-                        ) : (
-                           <span className="text-3xl font-black text-geevee-orange">₹{fareEstimate.amount}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="h-px bg-white/10 my-3"></div>
-                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed">{fareEstimate.breakdown}</p>
-                    {fareEstimate.discountApplied && (
-                       <p className="text-[10px] text-green-400 font-bold mt-2 uppercase tracking-widest flex items-center gap-2">
-                          <TicketPercent size={12} /> Savings: ₹{fareEstimate.discountApplied}
-                       </p>
-                    )}
-                  </div>
-                </div>
+              </div>
+            ) : (
+              <div className="h-full bg-white/5 border border-white/10 rounded-[3rem] flex flex-col items-center justify-center p-12 text-center opacity-80 min-h-[400px]">
+                 <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mb-8"><Calculator size={32} className="text-[#D4AF37]/60" /></div>
+                 <p className="text-[11px] font-mono font-black uppercase tracking-[0.5em] text-[#D4AF37]">Valuation Awaiting Parameters</p>
+                 <p className="text-sm font-medium text-[#D1D5DB] mt-4 max-w-[200px]">Complete the journey vectors to calculate final valuation</p>
               </div>
             )}
+          </div>
+        </div>
 
-            <button 
-              type="submit" 
-              disabled={isSubmitting || !selectedVehicleId}
-              className="w-full bg-geevee-orange hover:bg-orange-600 text-white py-6 rounded-2xl font-black text-lg shadow-[0_20px_40px_-10px_rgba(243,112,33,0.4)] hover:shadow-orange-600/40 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="animate-spin" /> Processing...
-                </>
-              ) : (
-                <>
-                  {t.booking.confirm} <CheckCircle2 className="group-hover:scale-110 transition-transform" />
-                </>
-              )}
-            </button>
-          </form>
+        <div className="flex flex-col items-center gap-4 opacity-40 hover:opacity-100 transition-opacity duration-700 mt-16">
+           <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/45 to-transparent"></div>
+           <p className="text-center text-[10px] font-mono font-bold text-slate-450 uppercase tracking-[0.6em]">
+              Geevee Travels Premium Luxury Logistics
+           </p>
         </div>
       </div>
     </div>

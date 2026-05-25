@@ -1,7 +1,12 @@
 {
-  "name": "Geevee Travels",
-  "description": "Premium outstation and local cab booking service in Tamil Nadu with fixed pricing, professional drivers, and 24/7 support.",
+  "name": "GV Drop Taxi Premium",
+  "description": "Premium intercity travel and luxury fleet management with dynamic tariff control, real-time booking, and a secured administrator infrastructure.",
   "requestFramePermissions": [
+    "camera",
+    "microphone",
     "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }

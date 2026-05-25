@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, Loader2, MapPin, ExternalLink } from 'lucide-react';
 import { getTripAdviceWithMaps } from '../services/gemini.ts';
@@ -92,48 +91,51 @@ const FloatingAIButton: React.FC = () => {
     <div className={`fixed bottom-6 right-6 z-[100] flex flex-col items-end ${fontClass}`}>
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 w-[350px] md:w-[450px] h-[600px] bg-white rounded-[2rem] shadow-3xl border border-slate-100 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10">
-          <div className="bg-geevee-dark p-6 text-white flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-geevee-orange p-2 rounded-xl">
-                <Bot className="text-white" size={24} />
+        <div className="mb-6 w-[350px] md:w-[480px] h-[700px] bg-gradient-to-b from-[#0C1E38]/95 via-[#040812]/98 to-[#040812] backdrop-blur-3xl rounded-[2.5rem] shadow-[0_45px_135px_rgba(0,0,0,0.85)] border border-[#D4AF37]/25 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-500">
+          <div className="bg-slate-950/80 p-8 text-white flex items-center justify-between relative overflow-hidden border-b border-[#D4AF37]/15">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+              <Bot size={200} />
+            </div>
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="bg-[#D4AF37]/10 p-3 rounded-2xl shadow-lg ring-1 ring-[#D4AF37]/20 text-[#D4AF37]">
+                <Bot size={28} />
               </div>
               <div>
-                <h4 className="font-bold">{currentLabels.title}</h4>
-                <p className="text-[10px] text-geevee-orange uppercase tracking-widest font-black flex items-center gap-1">
+                <h4 className="font-bold text-lg tracking-tight text-white">{currentLabels.title}</h4>
+                <p className="text-[10px] text-[#D4AF37] uppercase tracking-[0.25em] font-black flex items-center gap-1.5 opacity-95">
                   <MapPin size={10} fill="currentColor" /> {currentLabels.badge}
                 </p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-2 rounded-full transition-all">
+            <button onClick={() => setIsOpen(false)} className="hover:bg-white/5 p-3 rounded-2xl transition-all relative z-10 text-white/70 hover:text-white">
               <X size={20} />
             </button>
           </div>
 
-          <div className="flex-grow overflow-y-auto p-6 space-y-6 bg-slate-50">
+          <div className="flex-grow overflow-y-auto p-6 space-y-6 bg-[#040812]/40 backdrop-blur-sm">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[90%] flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className={`p-5 rounded-[1.5rem] text-sm font-medium shadow-sm whitespace-pre-line leading-relaxed ${
+                <div className={`max-w-[85%] flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div className={`p-5 rounded-[1.75rem] text-sm md:text-base leading-relaxed ${
                     m.role === 'user' 
-                      ? 'bg-geevee-orange text-white rounded-br-none' 
-                      : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
+                      ? 'bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] text-[#040812] font-semibold rounded-br-none shadow-md' 
+                      : 'bg-white/5 text-slate-100 rounded-bl-none border border-white/5'
                   }`}>
                     {m.text}
                   </div>
                   
                   {m.links && m.links.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-1">
+                    <div className="flex flex-wrap gap-2 mt-2">
                       {m.links.map((link, lIdx) => (
                         <a 
                           key={lIdx}
                           href={link.uri}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-white px-3 py-1.5 rounded-full border border-slate-200 text-[10px] font-black text-geevee-orange hover:bg-geevee-orange hover:text-white transition-all flex items-center gap-1 shadow-sm"
+                          className="bg-white/5 px-4 py-2 rounded-full border border-white/10 text-[10px] font-bold text-[#FCF6BA] hover:bg-[#D4AF37] hover:text-[#040812] hover:border-[#D4AF37] transition-all flex items-center gap-2 shadow-sm"
                         >
-                          <ExternalLink size={10} />
-                          {link.title.substring(0, 20)}...
+                          <ExternalLink size={12} />
+                          {link.title.substring(0, 24)}...
                         </a>
                       ))}
                     </div>
@@ -143,28 +145,28 @@ const FloatingAIButton: React.FC = () => {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 flex items-center gap-3 text-slate-400">
-                  <Loader2 className="animate-spin text-geevee-orange" size={18} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Accessing Maps Data...</span>
+                <div className="bg-white/5 px-6 py-4 rounded-[1.5rem] rounded-bl-none border border-white/5 flex items-center gap-4 text-slate-300 shadow-sm animate-pulse">
+                  <Loader2 className="animate-spin text-[#D4AF37]" size={20} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Consulting Knowledge Base...</span>
                 </div>
               </div>
             )}
             <div ref={chatEndRef} />
           </div>
 
-          <div className="p-4 bg-white border-t border-slate-100 flex gap-2">
+          <div className="p-6 bg-slate-950/80 border-t border-[#D4AF37]/15 flex gap-4">
             <input 
               type="text" 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               placeholder={currentLabels.placeholder}
-              className="flex-grow bg-slate-50 px-5 py-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-geevee-orange/10 transition-all font-medium"
+              className="flex-grow bg-white/5 border border-white/5 px-5 py-4 rounded-2xl text-sm outline-none focus:ring-1 focus:ring-[#D4AF37]/30 transition-all font-medium text-white placeholder-slate-500 focus:border-[#D4AF37]/30"
             />
             <button 
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
-              className="bg-geevee-orange text-white p-4 rounded-2xl hover:bg-orange-600 transition-all shadow-lg disabled:opacity-50"
+              className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] text-[#040812] p-4.5 rounded-2xl hover:brightness-110 transition-all shadow-xl disabled:opacity-50 active:scale-95 flex items-center justify-center shrink-0"
             >
               <Send size={24} />
             </button>
@@ -173,26 +175,31 @@ const FloatingAIButton: React.FC = () => {
       )}
 
       {/* Toggle Button */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-16 h-16 rounded-full flex items-center justify-center shadow-3xl transition-all transform hover:scale-110 active:scale-95 border-2 border-white ${
-          isOpen ? 'bg-slate-200 text-slate-600 rotate-90' : 'bg-geevee-dark text-white'
-        }`}
-      >
-        {isOpen ? <X size={32} /> : (
-          <div className="relative">
-            <Bot size={32} />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-geevee-orange rounded-full border-2 border-geevee-dark"></div>
+      <div className="relative group">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-18 h-18 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-500 transform hover:scale-105 active:scale-95 border-3 border-[#D4AF37]/25 ${
+            isOpen ? 'bg-[#040812] text-[#D4AF37]' : 'bg-gradient-to-b from-[#0C1E38] to-[#040812] text-[#FCF6BA]'
+          }`}
+        >
+          {isOpen ? <X size={28} /> : (
+            <div className="relative">
+              <Bot size={32} />
+              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-slate-900 animate-pulse"></div>
+            </div>
+          )}
+        </button>
+        
+        {/* Floating Info Tag */}
+        {!isOpen && (
+          <div className="absolute right-24 top-1/2 -translate-y-1/2 bg-gradient-to-b from-[#0C1E38]/95 to-[#040812]/95 px-6 py-3 rounded-2xl shadow-3xl border border-[#D4AF37]/25 whitespace-nowrap animate-in fade-in slide-in-from-right-10 pointer-events-none group-hover:opacity-0 transition-opacity">
+             <p className="text-[10px] font-bold text-[#FCF6BA] uppercase tracking-[0.2em] flex items-center gap-3">
+               <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+               Concierge Support Active
+             </p>
           </div>
         )}
-      </button>
-      
-      {/* Floating Info Tag */}
-      {!isOpen && (
-        <div className="absolute right-20 top-1/2 -translate-y-1/2 bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100 whitespace-nowrap animate-in fade-in slide-in-from-right-4">
-           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ask AI For Real-time Locations</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

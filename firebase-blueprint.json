@@ -1,0 +1,108 @@
+{
+  "entities": {
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Represents a vehicle in the fleet with its pricing details.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "capacity": { "type": "number" },
+        "pricePerKm": { "type": "number" },
+        "image": { "type": "string" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "pricing": {
+          "type": "object",
+          "properties": {
+            "localPackages": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "duration": { "type": "string" },
+                  "kms": { "type": "string" },
+                  "price": { "type": "number" }
+                }
+              }
+            },
+            "outstation": {
+              "type": "object",
+              "properties": {
+                "roundTrip": { "type": "number" },
+                "oneWay": { "type": "number" },
+                "driverBatta": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+      "required": ["id", "name", "type", "capacity", "pricing"]
+    },
+    "ExtraCharges": {
+      "title": "Extra Charges",
+      "description": "Global settings for additional charges and policies.",
+      "type": "object",
+      "properties": {
+        "additionalKm": {
+          "type": "object",
+          "properties": {
+            "sedan": { "type": "number" },
+            "suv": { "type": "number" }
+          }
+        },
+        "extraHours": {
+          "type": "object",
+          "properties": {
+            "sedan": { "type": "number" },
+            "suv": { "type": "number" }
+          }
+        },
+        "hillCharges": {
+          "type": "object",
+          "properties": {
+            "ooty": { "type": "number" },
+            "kodai": { "type": "number" }
+          }
+        },
+        "tollPolicy": { "type": "string" }
+      }
+    },
+    "PackagePrice": {
+      "title": "Package Price",
+      "description": "Pricing for a specific tour package.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "price": { "type": "number" }
+      }
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Represents an administrator with their email and role.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "vehicles": {
+      "schema": "Vehicle",
+      "description": "Inventory of vehicles and their specific tariffs."
+    },
+    "settings": {
+      "schema": "ExtraCharges",
+      "description": "Global pricing configurations."
+    },
+    "packages": {
+      "schema": "PackagePrice",
+      "description": "Pricing for various tour packages."
+    },
+    "admins": {
+      "schema": "Admin",
+      "description": "Authorized administrators."
+    }
+  }
+}

@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a]">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0B1F3A]">
         <div className="relative mb-4">
            <div className="absolute inset-0 bg-geevee-orange blur-xl opacity-20 rounded-full animate-pulse"></div>
            <Loader2 className="w-10 h-10 text-geevee-orange animate-spin relative z-10" />

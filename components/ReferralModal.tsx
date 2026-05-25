@@ -106,7 +106,7 @@ const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-8 md:p-12 overflow-y-auto bg-slate-50 dark:bg-[#0a0a0a] transition-colors">
+        <div className="p-8 md:p-12 overflow-y-auto bg-slate-50 dark:bg-[#0B1F3A] transition-colors">
            
            {/* Wallet Balance Card */}
            <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-xl border border-slate-100 dark:border-white/5 flex items-center justify-between mb-8 relative overflow-hidden group transition-colors">
@@ -173,7 +173,7 @@ const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose }) => {
         <div className="p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/10 flex justify-center shrink-0">
            <button 
              onClick={handleShare}
-             className="w-full md:w-auto px-12 py-4 bg-geevee-orange text-white rounded-2xl font-black text-lg shadow-xl shadow-geevee-orange/30 hover:bg-orange-600 active:scale-95 transition-all flex items-center justify-center gap-3"
+             className="w-full md:w-auto px-12 py-4 premium-glass-btn-solid rounded-2xl font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition-all flex items-center justify-center gap-3"
            >
               <Share2 size={20} />
               Share Now

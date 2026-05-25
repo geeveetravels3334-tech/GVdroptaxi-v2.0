@@ -35,31 +35,39 @@ export const calculateTripFare = (
 
   // 1. ONE WAY CALCULATION
   if (serviceType === ServiceType.ONE_WAY) {
-    if (pricing.outstation.oneWay === "NOT AVAILABLE") {
+    if (typeof pricing.outstation.oneWay === 'string' && pricing.outstation.oneWay.toUpperCase() === "NOT AVAILABLE") {
       return { total: 0, breakdown: 'Service not available for this vehicle', isAvailable: false };
     }
     
-    const ratePerKm = typeof pricing.outstation.oneWay === 'number' 
+    let ratePerKm = typeof pricing.outstation.oneWay === 'number' 
       ? pricing.outstation.oneWay 
-      : 0;
+      : parseFloat(pricing.outstation.oneWay as string) || 0;
+
+    if (vehicle.type === 'Sedan') {
+      ratePerKm = 13;
+    }
 
     // Minimum distance rule: 130km
     const minDistance = 130;
     const billableDistance = Math.max(distanceKm, minDistance);
 
     const baseFare = Math.round(billableDistance * ratePerKm);
-    total = baseFare + pricing.outstation.driverBatta;
     
-    if (distanceKm < minDistance) {
-        breakdown = `${minDistance} km (Min) x ₹${ratePerKm} + ₹${pricing.outstation.driverBatta} Batta`;
-    } else {
-        breakdown = `${Math.round(distanceKm)} km x ₹${ratePerKm} + ₹${pricing.outstation.driverBatta} Batta`;
-    }
+    // Add Driver Batta if applicable (for outstation). Wait, requirement is "Driver Bata Extra". I will include it.
+    const driverBatta = pricing.outstation.driverBatta;
+    total = baseFare; // Batta is Extra
+    
+    const distText = distanceKm < minDistance ? `${minDistance} km (Min)` : `${Math.round(distanceKm)} km`;
+    breakdown = `${distText} x ₹${ratePerKm} = ₹${baseFare}\n+ ₹${driverBatta} Driver Bata Extra\n+ Toll Extra\n+ Permit Extra\n+ Hills Charges Extra`;
   }
 
   // 2. ROUND TRIP CALCULATION
   else if (serviceType === ServiceType.ROUND_TRIP) {
-    const ratePerKm = pricing.outstation.roundTrip;
+    let ratePerKm = pricing.outstation.roundTrip;
+    
+    if (vehicle.type === 'Sedan') {
+      ratePerKm = 13;
+    }
     
     // Logic: (Distance * 2) * Rate + Driver Batta
     // Round trip implies returning to origin, so distance is doubled.
@@ -83,6 +91,7 @@ export const calculateTripFare = (
         days = totalDistance > 600 ? Math.ceil(totalDistance / 300) : 1;
     }
 
+    // New Requirement: Minimum daily coverage: 250 KM
     const minKmPerDay = 250;
     const minTotalKm = minKmPerDay * days;
     const billableDistance = Math.max(totalDistance, minTotalKm);
@@ -90,13 +99,10 @@ export const calculateTripFare = (
     const baseFare = Math.round(billableDistance * ratePerKm);
     const totalBatta = pricing.outstation.driverBatta * days;
 
-    total = baseFare + totalBatta;
+    total = baseFare; // Batta is Extra
     
-    if (totalDistance < minTotalKm) {
-        breakdown = `${minTotalKm} km (Min for ${days} days) x ₹${ratePerKm} + ₹${totalBatta} Batta (${days} days)`;
-    } else {
-        breakdown = `${Math.round(billableDistance)} km (Up & Down) x ₹${ratePerKm} + ₹${totalBatta} Batta (${days} days)`;
-    }
+    const distText = totalDistance < minTotalKm ? `${minTotalKm} km (Min for ${days} days)` : `${Math.round(billableDistance)} km (Up & Down)`;
+    breakdown = `${distText} x ₹${ratePerKm} = ₹${baseFare}\n+ ₹${totalBatta} Driver Bata Extra (${days} days)\n+ Toll Extra\n+ Permit Extra\n+ Hills Charges Extra`;
   }
 
   // 3. LOCAL / AIRPORT

@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitive Definition
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    // Admin check: Hardcoded bootstrap email + admins collection lookup
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'geeveetravels3334@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 1. Inventory of vehicles and specific tariffs
+    match /vehicles/{vehicleId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidVehicle(incoming());
+      allow delete: if isAdmin();
+
+      function isValidVehicle(data) {
+        return data.keys().hasAll(['id', 'name', 'type', 'capacity', 'pricing']) &&
+               data.id is string && data.id.size() <= 100 &&
+               data.name is string && data.name.size() <= 100 &&
+               data.type is string && data.type.size() <= 50 &&
+               data.capacity is number && data.capacity > 0 &&
+               data.capacity <= 100 &&
+               data.pricing is map &&
+               data.pricing.outstation is map &&
+               data.pricing.outstation.roundTrip is number;
+      }
+    }
+
+    // 2. Global pricing configurations
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin() && (
+        settingId != 'pricing_config' || isValidExtraCharges(incoming())
+      );
+
+      function isValidExtraCharges(data) {
+        return data.keys().hasAll(['additionalKm', 'extraHours', 'hillCharges', 'tollPolicy']) &&
+               data.additionalKm is map && 
+               data.additionalKm.sedan is number &&
+               data.additionalKm.suv is number &&
+               data.extraHours is map &&
+               data.extraHours.sedan is number &&
+               data.extraHours.suv is number &&
+               data.hillCharges is map &&
+               data.hillCharges.ooty is number &&
+               data.hillCharges.kodai is number &&
+               data.tollPolicy is string &&
+               data.tollPolicy.size() <= 2000;
+      }
+    }
+
+    // 3. Pricing for curated tour packages
+    match /packages/{packageId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidPackagePrice(incoming());
+      allow delete: if isAdmin();
+
+      function isValidPackagePrice(data) {
+        return data.keys().hasAll(['id', 'price']) &&
+               data.id is string && data.id.size() <= 100 &&
+               data.price is number && data.price >= 0;
+      }
+    }
+
+    // 4. Authorized administrators
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false; // Managed via Firebase Console for security
+    }
+  }
+}
