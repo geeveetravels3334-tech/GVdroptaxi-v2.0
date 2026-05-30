@@ -29,6 +29,8 @@ const LuxuryPackageCarousel: React.FC<LuxuryPackageCarouselProps> = ({ onSelectP
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleItems, setVisibleItems] = useState(3);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Responsive items count observer
@@ -67,6 +69,28 @@ const LuxuryPackageCarousel: React.FC<LuxuryPackageCarouselProps> = ({ onSelectP
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
   };
 
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
   // Autoplay loop timer (disables on hover/focus)
   useEffect(() => {
     const timer = setInterval(() => {
@@ -79,7 +103,12 @@ const LuxuryPackageCarousel: React.FC<LuxuryPackageCarouselProps> = ({ onSelectP
     <div ref={containerRef} className="relative w-full overflow-hidden select-none px-1 py-4">
       
       {/* Sliding chassis track viewport */}
-      <div className="relative overflow-hidden rounded-[2.5rem] p-1">
+      <div 
+        className="relative overflow-hidden rounded-[2.5rem] p-1"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
         <div 
           className="flex transition-transform duration-[850ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{ 

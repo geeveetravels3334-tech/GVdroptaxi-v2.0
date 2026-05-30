@@ -148,7 +148,7 @@ const AdminGate: React.FC<AdminGateProps> = ({ onVerified, onExit }) => {
                     type="password" 
                     value={passkey}
                     onChange={(e) => setPasskey(e.target.value)}
-                    className="w-full bg-white/[0.03] border-2 border-transparent focus:border-geevee-orange/30 rounded-[2rem] px-8 py-6 text-center text-white font-bold tracking-[0.8em] text-2xl outline-none transition-all placeholder:tracking-normal placeholder:font-bold placeholder:text-slate-800 shadow-inner"
+                    className="w-full bg-white/[0.03] border-2 border-transparent focus:border-geevee-orange/30 rounded-[2rem] px-8 py-6 text-center text-white font-bold tracking-[0.8em] text-2xl outline-none transition-all placeholder:tracking-normal placeholder:font-bold placeholder:text-slate-600 shadow-inner"
                     placeholder="••••••••"
                     autoFocus
                     disabled={status === 'SCANNING' || status === 'VERIFIED'}

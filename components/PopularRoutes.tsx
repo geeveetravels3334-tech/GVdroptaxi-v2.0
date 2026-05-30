@@ -52,7 +52,7 @@ const PopularRoutes: React.FC<PopularRoutesProps> = ({ id }) => {
             >
               <div className="flex items-center justify-between mb-12 md:mb-16">
                 <div className="flex flex-col items-center gap-1">
-                  <div className="bg-slate-100 dark:bg-white/5 px-4 md:px-6 py-1.5 md:py-2 rounded-full text-slate-500 dark:text-[#9CA3AF] font-black text-[7px] md:text-[8px] uppercase tracking-widest border border-slate-200 dark:border-white/5">
+                  <div className="bg-slate-100 dark:bg-white/5 px-4 md:px-6 py-1.5 md:py-2 rounded-full text-slate-500 dark:text-[#9CA3AF] font-black text-[9px] md:text-[10px] uppercase tracking-widest border border-slate-200 dark:border-white/5">
                     Origin
                   </div>
                   <span className={`font-black text-slate-800 dark:text-white mt-6 md:mt-8 text-xl md:text-2xl tracking-tighter italic font-serif ${fontClass}`}>{route.from}</span>
@@ -66,7 +66,7 @@ const PopularRoutes: React.FC<PopularRoutesProps> = ({ id }) => {
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
-                  <div className="bg-slate-100 dark:bg-white/5 px-4 md:px-6 py-1.5 md:py-2 rounded-full text-slate-500 dark:text-[#9CA3AF] font-black text-[7px] md:text-[8px] uppercase tracking-widest border border-slate-200 dark:border-white/5">
+                  <div className="bg-slate-100 dark:bg-white/5 px-4 md:px-6 py-1.5 md:py-2 rounded-full text-slate-500 dark:text-[#9CA3AF] font-black text-[9px] md:text-[10px] uppercase tracking-widest border border-slate-200 dark:border-white/5">
                     Terminal
                   </div>
                   <span className={`font-black text-slate-800 dark:text-white mt-6 md:mt-8 text-xl md:text-2xl tracking-tighter italic font-serif ${fontClass}`}>{route.to}</span>
@@ -75,18 +75,18 @@ const PopularRoutes: React.FC<PopularRoutesProps> = ({ id }) => {
 
               <div className="grid grid-cols-2 gap-4 md:gap-6 mb-10 md:mb-12">
                 <div className="glass-panel p-4 md:p-6 rounded-2xl md:rounded-[2rem] border-slate-200 dark:border-white/5 text-center">
-                  <span className="block text-[7px] md:text-[8px] font-black text-[#D4AF37]/60 uppercase tracking-[0.3em] mb-1 md:mb-2">Distance</span>
+                  <span className="block text-[9px] md:text-[10px] font-black text-[#D4AF37]/60 uppercase tracking-[0.3em] mb-1 md:mb-2">Distance</span>
                   <span className="font-black text-slate-800 dark:text-white text-lg md:text-xl tracking-tight">{route.distance}</span>
                 </div>
                 <div className="glass-panel p-4 md:p-6 rounded-2xl md:rounded-[2rem] border-slate-200 dark:border-white/5 text-center">
-                  <span className="block text-[7px] md:text-[8px] font-black text-[#D4AF37]/60 uppercase tracking-[0.3em] mb-1 md:mb-2">Duration</span>
+                  <span className="block text-[9px] md:text-[10px] font-black text-[#D4AF37]/60 uppercase tracking-[0.3em] mb-1 md:mb-2">Duration</span>
                   <span className="font-black text-slate-800 dark:text-white text-lg md:text-xl tracking-tight">{route.duration}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-8 md:pt-10 border-t border-slate-200 dark:border-white/10">
                 <div>
-                  <p className="text-[8px] md:text-[9px] font-black text-slate-500 dark:text-[#9CA3AF] uppercase tracking-[0.5em] mb-2 md:mb-3 leading-none">Investment</p>
+                  <p className="text-[10px] sm:text-xs font-black text-slate-500 dark:text-[#9CA3AF] uppercase tracking-[0.5em] mb-2 md:mb-3 leading-none">Investment</p>
                   <p className={`text-4xl md:text-5xl font-black luxury-text-gradient transition-colors tracking-tighter ${fontClass}`}>₹{route.price}</p>
                 </div>
                 <button 

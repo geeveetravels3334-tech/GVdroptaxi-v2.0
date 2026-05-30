@@ -20,9 +20,15 @@ const generateBookingId = (serviceType: string, createdAt: string) => {
   return `${typeChar}${year}${month}${sequence}`;
 };
 
+const isBrowser = typeof window !== 'undefined';
+
 export const BookingService = {
   // --- Driver Management ---
   getDrivers: async () => {
+    if (isBrowser) {
+      const res = await fetch('/api/drivers');
+      return res.json();
+    }
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('drivers')
@@ -45,7 +51,43 @@ export const BookingService = {
     }));
   },
 
+  updateDriver: async (driverData: any) => {
+    if (isBrowser) {
+      const res = await fetch(`/api/drivers/${driverData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(driverData)
+      });
+      return res.json();
+    }
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('drivers')
+      .update({
+        name: driverData.name,
+        mobile: driverData.mobile,
+        license: driverData.license,
+        vehicle_model: driverData.vehicleModel,
+        vehicle_number: driverData.vehicleNumber
+      })
+      .eq('id', driverData.id);
+
+    if (error) {
+      console.error("Supabase Error (updateDriver):", error);
+      throw error;
+    }
+    return true;
+  },
+
   addDriver: async (driverData: any) => {
+    if (isBrowser) {
+      const res = await fetch('/api/drivers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(driverData)
+      });
+      return res.json();
+    }
     const supabase = getSupabase();
     const newDriver = {
       name: driverData.name,
@@ -83,6 +125,10 @@ export const BookingService = {
   },
 
   deleteDriver: async (id: string) => {
+    if (isBrowser) {
+      await fetch(`/api/drivers/${id}`, { method: 'DELETE' });
+      return;
+    }
     const supabase = getSupabase();
     const { error } = await supabase
       .from('drivers')
@@ -96,49 +142,70 @@ export const BookingService = {
   },
 
   // --- Booking Management ---
-  saveBooking: async (data: any) => {
+  saveBooking: async (inputData: any) => {
+    if (isBrowser) {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(inputData)
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to save booking');
+      }
+      return res.json();
+    }
     const supabase = getSupabase();
     const timestamp = new Date().toISOString();
-    const displayId = generateBookingId(data.service, timestamp);
+    const displayId = generateBookingId(inputData.service || 'One Way Drop', timestamp);
 
-    const bookingData = {
-      service_type: data.service,
-      pickup_location: data.pickup,
-      drop_location: data.drop,
-      pickup_date: data.date,
-      return_date: data.returnDate || null,
-      pickup_time: data.time,
-      mobile: data.mobile,
-      customer_name: data.customerName,
-      vehicle: data.vehicle,
-      price: data.price,
-      applied_referral_code: data.referralCode || null,
-      discount_amount: data.discountAmount || 0,
-      status: 'confirmed',
-      created_at: timestamp,
+    // Safeguard columns to prevent undefined/null fields and ensure exact mapping
+    const bookingData: any = {
       booking_display_id: displayId,
-      assigned_driver: null
+      service_type: String(inputData.service || 'One Way Drop'),
+      pickup_location: String(inputData.pickup || ''),
+      drop_location: String(inputData.drop || ''),
+      pickup_date: String(inputData.date || ''),
+      pickup_time: String(inputData.time || ''),
+      return_date: inputData.returnDate || null,
+      vehicle: String(inputData.vehicle || ''),
+      price: String(inputData.price || '0'),
+      customer_name: inputData.customerName || 'Guest',
+      mobile: String(inputData.mobile || ''),
+      status: 'pending',
+      applied_referral_code: inputData.referralCode || null,
+      discount_amount: Number(inputData.discountAmount || 0),
+      created_at: timestamp
     };
 
-    const { data: insertedData, error } = await supabase
-      .from('bookings')
-      .insert([bookingData])
-      .select()
-      .single();
+    console.log("PRE-INSERT CHECK - Payload:", bookingData);
 
-    if (error) {
-      console.error("Supabase Error (saveBooking):", error);
-      throw error;
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .insert([bookingData]);
+      
+      if (error) {
+        console.error("SUPABASE INSERT ERROR OBJECT:", error);
+        throw error;
+      }
+      
+      console.log("SUPABASE INSERT COMPLETED SUCCESSFULLY");
+      return { 
+        success: true,
+        bookingId: displayId 
+      };
+    } catch (e: any) {
+      console.error("CRITICAL SUPABASE FAILURE:", e.message || e);
+      throw e;
     }
-
-    return { 
-      id: insertedData.id, 
-      bookingId: displayId,
-      ...insertedData 
-    };
   },
 
   getAllBookings: async () => {
+    if (isBrowser) {
+      const res = await fetch('/api/bookings');
+      return res.json();
+    }
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('bookings')
@@ -165,11 +232,18 @@ export const BookingService = {
       price: b.price,
       status: b.status,
       timestamp: b.created_at,
-      assignedDriver: b.assigned_driver
+      assignedDriver: b.assigned_driver,
+      driverShared: b.driver_shared,
+      customerShared: b.customer_shared,
+      sharedAt: b.shared_at
     }));
   },
 
   getUserBookings: async (mobile: string) => {
+    if (isBrowser) {
+      const res = await fetch(`/api/bookings/user/${mobile}`);
+      return res.json();
+    }
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('bookings')
@@ -195,12 +269,34 @@ export const BookingService = {
       price: b.price,
       status: b.status,
       timestamp: b.created_at,
-      assignedDriver: b.assigned_driver
+      assignedDriver: b.assigned_driver,
+      driverShared: b.driver_shared,
+      customerShared: b.customer_shared,
+      sharedAt: b.shared_at
     }));
   },
 
   updateBookingStatus: async (id: string, status: string) => {
+    if (isBrowser) {
+      const res = await fetch(`/api/bookings/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      return res.ok;
+    }
     const supabase = getSupabase();
+    const { data: booking, error: fetchError } = await supabase
+      .from('bookings')
+      .select('assigned_driver')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      console.error("Supabase Error (fetch booking driver):", fetchError);
+      return false;
+    }
+
     const { error } = await supabase
       .from('bookings')
       .update({ status })
@@ -210,17 +306,38 @@ export const BookingService = {
       console.error("Supabase Error (updateBookingStatus):", error);
       return false;
     }
+
+    // Release the driver if completed or cancelled
+    if ((status === 'completed' || status === 'cancelled') && booking?.assigned_driver?.id) {
+      const { error: driverError } = await supabase
+        .from('drivers')
+        .update({ status: 'available' })
+        .eq('id', booking.assigned_driver.id);
+      
+      if (driverError) {
+         console.error("Supabase Error (release driver):", driverError);
+      }
+    }
+
     return true;
   },
 
   assignDriver: async (bookingId: string, driver: any) => {
+    if (isBrowser) {
+      const res = await fetch(`/api/bookings/${bookingId}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ driver })
+      });
+      return res.ok;
+    }
     const supabase = getSupabase();
     // 1. Update Booking
     const { error: bookingError } = await supabase
       .from('bookings')
       .update({ 
         assigned_driver: driver,
-        status: 'confirmed' 
+        status: 'assigned' 
       })
       .eq('id', bookingId);
     
@@ -229,7 +346,22 @@ export const BookingService = {
       return false;
     }
 
-    // 2. Update Driver Status
+    // 2. Insert into Trip Assignments
+    const { error: assignError } = await supabase
+      .from('trip_assignments')
+      .insert([{
+        booking_id: bookingId,
+        driver_id: driver.id,
+        status: 'Assigned'
+      }]);
+
+    if (assignError) {
+      console.error("Supabase Error (assignDriver - assignment):", assignError);
+      // We don't necessarily fail the whole operation if this secondary record fails, 
+      // but it's good to log.
+    }
+
+    // 3. Update Driver Status
     // First get current trips to increment
     const { data: driverData, error: fetchError } = await supabase
       .from('drivers')
@@ -258,7 +390,38 @@ export const BookingService = {
     return true;
   },
 
+  markTripShared: async (bookingId: string, target: 'driver' | 'customer') => {
+    if (isBrowser) {
+      const res = await fetch(`/api/bookings/${bookingId}/share`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target })
+      });
+      return res.ok;
+    }
+    const supabase = getSupabase();
+    
+    const updateData: any = { shared_at: new Date().toISOString() };
+    if (target === 'driver') updateData.driver_shared = true;
+    if (target === 'customer') updateData.customer_shared = true;
+
+    const { error } = await supabase
+      .from('bookings')
+      .update(updateData)
+      .eq('id', bookingId);
+    
+    if (error) {
+      console.error("Supabase Error (markTripShared):", error);
+      return false;
+    }
+    return true;
+  },
+
   deleteBooking: async (id: string) => {
+    if (isBrowser) {
+      await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+      return;
+    }
     const supabase = getSupabase();
     const { error } = await supabase
       .from('bookings')
@@ -272,6 +435,10 @@ export const BookingService = {
   },
 
   getStats: async () => {
+    if (isBrowser) {
+      const res = await fetch('/api/stats');
+      return res.json();
+    }
     const bookings = await BookingService.getAllBookings();
     const total = bookings.length;
     
@@ -292,7 +459,8 @@ export const BookingService = {
     return {
       total,
       pending: statusDist['pending'] || 0,
-      confirmed: statusDist['confirmed'] || 0,
+      assigned: statusDist['assigned'] || 0,
+      started: statusDist['started'] || 0,
       completed: statusDist['completed'] || 0,
       cancelled: statusDist['cancelled'] || 0,
       estimatedRevenue: revenue,

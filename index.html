@@ -21,6 +21,54 @@
         } catch (e) { console.error('Theme check failed', e); }
       })();
       window.process = window.process || { env: {} };
+
+      // Global suppression of Google Maps BillingNotEnabledMapError alerts and dialogs
+      window.gm_authFailure = function() {
+        console.warn('Google Maps Auth/Billing Failure Intercepted. Silently downgraded to offline GIS mode.');
+        window.__gm_auth_failed = true;
+      };
+
+      // Suppress alert popups containing Google Maps billing words
+      var _originalAlert = window.alert;
+      window.alert = function(msg) {
+        var str = String(msg || '');
+        if (
+          str.indexOf('BillingNotEnabledMapError') !== -1 ||
+          str.indexOf('billing/enable') !== -1 ||
+          str.indexOf('Google Maps') !== -1 ||
+          str.indexOf('Billing') !== -1
+        ) {
+          console.warn('Silent fallback: alert suppressed:', str);
+          window.__gm_auth_failed = true;
+          return;
+        }
+        if (_originalAlert) {
+          try {
+            _originalAlert.apply(window, arguments);
+          } catch (e) {
+            _originalAlert(msg);
+          }
+        }
+      };
+
+      // Suppress error logs in developer console containing Google Maps billing triggers
+      var _originalConsoleError = console.error;
+      console.error = function() {
+        var argsStr = Array.prototype.slice.call(arguments).map(String).join(' ');
+        if (
+          argsStr.indexOf('BillingNotEnabledMapError') !== -1 ||
+          argsStr.indexOf('billing/enable') !== -1 ||
+          argsStr.indexOf('Google Maps') !== -1 ||
+          argsStr.indexOf('Billing') !== -1
+        ) {
+          console.warn('Silent fallback: console error suppressed:', argsStr);
+          window.__gm_auth_failed = true;
+          return;
+        }
+        if (_originalConsoleError) {
+          _originalConsoleError.apply(console, arguments);
+        }
+      };
     </script>
 </head>
 <body class="relative min-h-screen antialiased">

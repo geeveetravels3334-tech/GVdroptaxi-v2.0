@@ -43,10 +43,6 @@ export const calculateTripFare = (
       ? pricing.outstation.oneWay 
       : parseFloat(pricing.outstation.oneWay as string) || 0;
 
-    if (vehicle.type === 'Sedan') {
-      ratePerKm = 13;
-    }
-
     // Minimum distance rule: 130km
     const minDistance = 130;
     const billableDistance = Math.max(distanceKm, minDistance);
@@ -64,10 +60,6 @@ export const calculateTripFare = (
   // 2. ROUND TRIP CALCULATION
   else if (serviceType === ServiceType.ROUND_TRIP) {
     let ratePerKm = pricing.outstation.roundTrip;
-    
-    if (vehicle.type === 'Sedan') {
-      ratePerKm = 13;
-    }
     
     // Logic: (Distance * 2) * Rate + Driver Batta
     // Round trip implies returning to origin, so distance is doubled.

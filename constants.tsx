@@ -115,7 +115,7 @@ export const DETAILED_VEHICLES: ExtendedVehicle[] = [
     name: 'Ertiga / Xylo / Similar',
     type: 'SUV',
     capacity: 7,
-    pricePerKm: 18,
+    pricePerKm: 19,
     image: ertigaImg,
     features: ['High Ground Clearance', 'Ample Leg Space', 'Premium Comfort', 'Dual AC'],
     pricing: {
@@ -126,7 +126,7 @@ export const DETAILED_VEHICLES: ExtendedVehicle[] = [
         { duration: '12 Hours', kms: '120 Kms', price: 4600 },
         { duration: '15 Hours', kms: '150 Kms', price: 5600 }
       ],
-      outstation: { roundTrip: 18, oneWay: 20, driverBatta: 500 }
+      outstation: { roundTrip: 19, oneWay: 21, driverBatta: 500 }
     }
   },
   {
@@ -145,7 +145,7 @@ export const DETAILED_VEHICLES: ExtendedVehicle[] = [
         { duration: '12 Hours', kms: '120 Kms', price: 4700 },
         { duration: '15 Hours', kms: '150 Kms', price: 5800 }
       ],
-      outstation: { roundTrip: 20, oneWay: 20, driverBatta: 600 }
+      outstation: { roundTrip: 20, oneWay: 22, driverBatta: 600 }
     }
   },
   {
@@ -153,7 +153,7 @@ export const DETAILED_VEHICLES: ExtendedVehicle[] = [
     name: 'Innova Crysta',
     type: 'Luxury SUV',
     capacity: 7,
-    pricePerKm: 22,
+    pricePerKm: 24,
     image: crystaImg,
     features: ['Elite Comfort', 'Superior Safety', 'Recliner Seats', 'VIP Travel'],
     pricing: {
@@ -162,7 +162,7 @@ export const DETAILED_VEHICLES: ExtendedVehicle[] = [
         { duration: '10 Hours', kms: '100 Kms', price: 5000 },
         { duration: '15 Hours', kms: '150 Kms', price: 7500 }
       ],
-      outstation: { roundTrip: 22, oneWay: "Not Available", driverBatta: 700 }
+      outstation: { roundTrip: 24, oneWay: "Not Available", driverBatta: 700 }
     }
   },
   {

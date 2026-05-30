@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import heroBg from '../src/assets/images/hero_coastal_innova_1779694434278.png';
 import { ScrollReveal } from './ScrollReveal.tsx';
+import OptimizedImage from './OptimizedImage.tsx';
 
 const Hero: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -16,12 +17,14 @@ const Hero: React.FC = () => {
       
       {/* Background Image & Overlays */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <OptimizedImage 
           src={heroBg} 
           alt="Luxury Innova Crysta driving down ECR road at golden sunset" 
-          className="w-full h-full object-cover brightness-90 contrast-[1.1] saturate-[0.8]"
+          className="w-full h-full object-cover brightness-95 contrast-[1.05] saturate-100"
+          containerClassName="w-full h-full"
         />
         {/* Deep Navy Blue Overlay - Darker at bottom for text, clearer center */}
+
         <div className="absolute inset-0 bg-gradient-to-t from-[#050A15] via-[#050A15]/40 to-[#050A15]/90" />
         
         {/* Sharp Cinematic Gold Sunset Lighting */}

@@ -62,7 +62,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => {
             <h4 className="text-2xl md:text-3.5xl font-normal tracking-tight text-white italic font-serif leading-none group-hover/card:text-luxury-gold-soft transition-colors">{vehicle.name}</h4>
             <div className="inline-flex items-center gap-2 bg-[#D4AF37]/10 px-3 py-1.5 rounded-full border border-[#D4AF37]/30">
                <ShieldCheck size={12} className="text-[#D4AF37]" /> 
-               <span className="text-luxury-gold font-black text-[7px] md:text-[8px] uppercase tracking-[0.3em]">Supreme Heritage Certified</span>
+               <span className="text-luxury-gold font-black text-[9px] md:text-[10px] uppercase tracking-[0.3em]">Supreme Heritage Certified</span>
             </div>
           </div>
           <div className="text-right shrink-0">
@@ -76,12 +76,12 @@ const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => {
         <div className="grid grid-cols-2 gap-3 md:gap-4 mb-8 md:mb-10">
           <div className="bg-[#111827] backdrop-blur-md p-4 md:p-5 rounded-2xl border border-white/5 flex flex-col items-center gap-1.5 transition-colors group-hover/card:border-[#D4AF37]/15">
              <Users size={16} className="text-[#D4AF37]" />
-             <p className="text-[7px] md:text-[8px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em]">Personnel</p>
+             <p className="text-[9px] md:text-[10px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em]">Personnel</p>
              <p className="font-bold text-xs md:text-sm text-white">{vehicle.capacity} Travelers</p>
           </div>
           <div className="bg-[#111827] backdrop-blur-md p-4 md:p-5 rounded-2xl border border-white/5 flex flex-col items-center gap-1.5 transition-colors group-hover/card:border-[#D4AF37]/15">
              <Briefcase size={16} className="text-[#D4AF37]" />
-             <p className="text-[7px] md:text-[8px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em]">Volume</p>
+             <p className="text-[9px] md:text-[10px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em]">Volume</p>
              <p className="font-bold text-xs md:text-sm text-white">4 Large Bags</p>
           </div>
         </div>

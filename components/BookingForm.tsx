@@ -1,15 +1,24 @@
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Phone, MapPin, Calendar, Clock, CheckCircle2, Search, Car, RefreshCcw, Loader2, ChevronDown, ChevronUp, Check, Navigation, AlertTriangle, Calculator, TicketPercent, ArrowRight, MessageSquare, X } from 'lucide-react';
+import { Phone, MapPin, Calendar, Clock, CheckCircle2, Search, Car, RefreshCcw, Loader2, ChevronDown, ChevronUp, Check, Navigation, AlertTriangle, Calculator, TicketPercent, ArrowRight, MessageSquare, X, Mail } from 'lucide-react';
 import { ServiceType } from '../types.ts';
 import { useLanguage } from '../contexts/LanguageContext.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { BookingService } from '../services/booking.ts';
 import { ReferralService } from '../services/referral.ts';
+import { CustomerService, CustomerData } from '../services/customer.ts';
 import { usePricing } from '../contexts/PricingContext.tsx';
 import { calculateTripFare } from '../utils/pricing.ts';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
+import emailjs from '@emailjs/browser';
+import { getSupabase } from '../services/supabase.ts';
+import { 
+  OFFLINE_CITIES_DATABASE, 
+  searchOfflineSuggestions, 
+  calculateOfflineDistance, 
+  estimatePremiumOfflineFareByVehicle,
+  OfflineCity 
+} from '../utils/geoData.ts';
 
 const WHATSAPP_BOOKING_NUMBER = '9025743325';
 
@@ -20,7 +29,7 @@ interface LocationSuggestion {
   lon?: string;
   main_text?: string;
   secondary_text?: string;
-  matched_substrings?: google.maps.places.PredictionSubstring[];
+  matched_substrings?: any[];
 }
 
 interface RouteInfo {
@@ -33,15 +42,20 @@ interface FareEstimate {
   breakdown: string;
   originalAmount?: number;
   discountApplied?: number;
+  rangeDisplay?: string;
+  tollEstimate?: number;
+  driverBatta?: number;
+  hillCharges?: number;
+  nightCharges?: number;
 }
 
 interface SuggestionListProps {
   suggestions: LocationSuggestion[];
   onSelect: (suggestion: LocationSuggestion) => void;
-  renderHighlight: (text: string, matches?: google.maps.places.PredictionSubstring[]) => React.ReactNode;
+  renderHighlight: (text: string, matches?: any[]) => React.ReactNode;
 }
 
-const SuggestionList: React.FC<SuggestionListProps> = ({ suggestions, onSelect, renderHighlight }) => (
+const SuggestionList = React.memo<SuggestionListProps>(({ suggestions, onSelect, renderHighlight }) => (
   <AnimatePresence>
     {suggestions.length > 0 && (
       <motion.div 
@@ -54,7 +68,7 @@ const SuggestionList: React.FC<SuggestionListProps> = ({ suggestions, onSelect, 
         <div className="max-h-[320px] overflow-y-auto premium-scrollbar">
           {suggestions.map((s, i) => (
             <button 
-              key={`${s.display_name}-${i}`} 
+              key={`${s.display_name}-${s.lat || ''}-${s.lon || ''}-${i}`} 
               type="button" 
               onClick={() => onSelect(s)} 
               className="w-full text-left px-8 py-5 hover:bg-white/10 transition-all text-[11px] font-bold text-[#D1D5DB] border-b border-white/5 last:border-0 flex items-center gap-5 group/suggest outline-none focus:bg-white/10"
@@ -78,15 +92,32 @@ const SuggestionList: React.FC<SuggestionListProps> = ({ suggestions, onSelect, 
       </motion.div>
     )}
   </AnimatePresence>
-);
+));
+
+const PLACEHOLDERS = {
+  en: { pickup: 'City Name', drop: 'Destination City/Area', mobile: 'Enter mobile number' },
+  ta: { pickup: 'நகரத்தின் பெயர்', drop: 'செல்லும் இடம்', mobile: 'மொபைல் எண்' },
+  hi: { pickup: 'शहर का नाम', drop: 'गंतव्य शहर/क्षेत्र', mobile: 'मोबाइल नंबर' },
+  te: { pickup: 'నగరం పేరు', drop: 'గమ్యం నగరం/ప్రాంతం', mobile: 'మొబైల్ నంబర్' },
+  kn: { pickup: 'ನಗರದ ಹೆಸರು', drop: 'ಗಮ್ಯಸ್ಥಾನ ನಗರ/ಪ್ರದೇಶ', mobile: 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ' },
+};
+
+// Populate popular location list dynamically from our robust offline city directory (static cache outside render loop)
+const POPULAR_CITIES: LocationSuggestion[] = OFFLINE_CITIES_DATABASE.slice(0, 15).map(city => ({
+  display_name: city.name,
+  main_text: city.name,
+  secondary_text: `${city.tamilName} • ${city.region}`,
+  lat: String(city.coords[0]),
+  lon: String(city.coords[1])
+}));
 
 const BookingForm: React.FC = () => {
   const { t, language, fontClass } = useLanguage();
   const { user } = useAuth();
   const { vehicles: DETAILED_VEHICLES, loading: isPricingLoading } = usePricing();
   
-  const placesLib = useMapsLibrary('places');
-  const geocodingLib = useMapsLibrary('geocoding');
+  const isMapsDegraded = true;
+  const [manualDistance, setManualDistance] = useState<number>(150); // Default manual fallback distance 150 KM
 
   const [service, setService] = useState<ServiceType>(ServiceType.ONE_WAY);
   const [pickup, setPickup] = useState('');
@@ -95,6 +126,7 @@ const BookingForm: React.FC = () => {
   const [returnDate, setReturnDate] = useState('');
   const [time, setTime] = useState('');
   const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   
   const [pickupCoords, setPickupCoords] = useState<[number, number] | null>(null);
@@ -125,11 +157,14 @@ const BookingForm: React.FC = () => {
   const [isCheckingPromo, setIsCheckingPromo] = useState(false);
   const [isFirstBooking, setIsFirstBooking] = useState(true);
   const [showOffersInput, setShowOffersInput] = useState(false);
+  
+  const [customerData, setCustomerData] = useState<CustomerData | null>(null);
+  const [pointsRedeemed, setPointsRedeemed] = useState(false);
+  const [pointsDiscount, setPointsDiscount] = useState(0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showVehicleSelection, setShowVehicleSelection] = useState(false);
 
   const pickupTimeoutRef = useRef<number | null>(null);
@@ -137,15 +172,7 @@ const BookingForm: React.FC = () => {
 
   const isBaseInfoFilled = pickup.trim() !== '' && drop.trim() !== '' && date !== '' && time !== '' && (service !== ServiceType.ROUND_TRIP || returnDate !== '');
 
-  const placeholders = {
-    en: { pickup: 'City Name', drop: 'Destination City/Area', mobile: 'Enter mobile number' },
-    ta: { pickup: 'நகரத்தின் பெயர்', drop: 'செல்லும் இடம்', mobile: 'மொபைல் எண்' },
-    hi: { pickup: 'शहर का नाम', drop: 'गंतव्य शहर/क्षेत्र', mobile: 'मोबाइल नंबर' },
-    te: { pickup: 'నగరం పేరు', drop: 'గమ్యం నగరం/ప్రాంతం', mobile: 'మొబైల్ నంబర్' },
-    kn: { pickup: 'ನಗರದ ಹೆಸರು', drop: 'ಗಮ್ಯಸ್ಥಾನ ನಗರ/ಪ್ರದೇಶ', mobile: 'ಮೊಬైಲ್ ಸಂಖ್ಯೆ' },
-  };
-
-  const ph = placeholders[language] || placeholders.en;
+  const ph = PLACEHOLDERS[language] || PLACEHOLDERS.en;
 
   const selectedVehicle = useMemo(() => 
     DETAILED_VEHICLES.find(v => v.id === selectedVehicleId)
@@ -163,306 +190,263 @@ const BookingForm: React.FC = () => {
   }, [service, DETAILED_VEHICLES]);
 
   useEffect(() => {
+    let timeoutId: number;
     const checkHistory = async () => {
       if (mobile && mobile.length >= 10) {
         const bookings = await BookingService.getUserBookings(mobile);
         setIsFirstBooking(bookings.length === 0);
       }
     };
-    checkHistory();
+
+    if (mobile && mobile.length >= 10) {
+      timeoutId = window.setTimeout(() => {
+        checkHistory();
+      }, 500);
+    }
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [mobile]);
+
+  useEffect(() => {
+    const fetchCustomer = async () => {
+       if (user?.mobile) {
+           const c = await CustomerService.getCustomer(user.mobile);
+           if (c) setCustomerData(c);
+       }
+    };
+    fetchCustomer();
+  }, [user?.mobile]);
+
+  const handleApplyPoints = () => {
+    if (!customerData) return;
+    const availablePoints = (customerData.total_points || 0) - (customerData.redeemed_points || 0);
+    if (availablePoints >= 500 && !pointsRedeemed) {
+       // Redeem blocks of 500 points for ₹100 discount
+       const blocks = Math.floor(availablePoints / 500);
+       setPointsDiscount(blocks * 100);
+       setPointsRedeemed(true);
+    }
+  };
+
+  const handleRemovePoints = () => {
+    setPointsDiscount(0);
+    setPointsRedeemed(false);
+  };
+
+  const getAvailablePoints = () => {
+     return customerData ? ((customerData.total_points || 0) - (customerData.redeemed_points || 0)) : 0;
+  };
 
   useEffect(() => {
     if (user && user.mobile) {
       setMobile(user.mobile);
     }
+    if (user && user.email) {
+      setEmail(user.email);
+    }
   }, [user]);
 
+  // FARE ENGINE: Advanced calculations with offline precision
   useEffect(() => {
-    if (distanceKm > 0 && selectedVehicle && service) {
-      const result = calculateTripFare(distanceKm, service, selectedVehicle, date, returnDate);
-      
-      if (result.isAvailable && result.total > 0) {
-        let finalAmount = result.total;
-        let appliedDiscount = 0;
-
-        if (isPromoValid) {
-           appliedDiscount = Math.round(result.total * 0.10); 
-           setPromoDiscount(appliedDiscount);
-        } else if (isReferralValid) {
-           appliedDiscount = referralDiscount;
-        }
-
-        finalAmount = Math.max(0, result.total - appliedDiscount);
-
-        setFareEstimate({
-          amount: finalAmount,
-          originalAmount: result.total,
-          discountApplied: appliedDiscount,
-          breakdown: result.breakdown
-        });
-      } else {
-        setFareEstimate(null);
-      }
-    } else {
+    if (!selectedVehicleId || !selectedVehicle) {
       setFareEstimate(null);
+      return;
     }
-  }, [distanceKm, selectedVehicle, service, referralDiscount, isReferralValid, isPromoValid, promoDiscount, date, returnDate]);
 
-  const routesLib = useMapsLibrary('routes');
+    const currentDist = distanceKm;
+    const currentService = service;
+    const currentIsMapsDegradedValue = isMapsDegraded;
+    const currentPickupCoords = pickupCoords;
+    const currentDropCoords = dropCoords;
+
+    const calculateFare = () => {
+      // Logic for determining which distance to use
+      const primaryDistance = (currentPickupCoords && currentDropCoords && !currentIsMapsDegradedValue) ? currentDist : manualDistance;
+
+      const breakdown = estimatePremiumOfflineFareByVehicle(
+        primaryDistance, 
+        currentService === ServiceType.ROUND_TRIP, 
+        selectedVehicle.name
+      );
+
+      let finalAmount = breakdown.minTotal;
+      let appliedDiscount = 0;
+
+      if (isPromoValid) {
+         appliedDiscount = Math.round(breakdown.minTotal * 0.10); 
+      } else if (isReferralValid) {
+         appliedDiscount = referralDiscount;
+      }
+
+      appliedDiscount += pointsDiscount;
+
+      finalAmount = Math.max(0, breakdown.minTotal - appliedDiscount);
+
+      setFareEstimate(prev => {
+        // Prevent update if same values to avoid flickering
+        if (prev && 
+            prev.amount === finalAmount && 
+            prev.discountApplied === appliedDiscount &&
+            prev.rangeDisplay === breakdown.rangeDisplay) return prev;
+            
+        return {
+          amount: finalAmount,
+          originalAmount: breakdown.minTotal,
+          discountApplied: appliedDiscount,
+          breakdown: breakdown.breakdownString,
+          rangeDisplay: breakdown.rangeDisplay,
+          tollEstimate: breakdown.tollEstimate,
+          driverBatta: breakdown.driverBatta,
+          hillCharges: breakdown.hillCharges,
+          nightCharges: breakdown.nightCharges
+        };
+      });
+    };
+
+    calculateFare();
+  }, [distanceKm, selectedVehicle, selectedVehicleId, manualDistance, service, referralDiscount, isReferralValid, isPromoValid, promoDiscount, date, returnDate, isMapsDegraded]);
 
   const calculateDistance = async (lat1: number, lon1: number, lat2: number, lon2: number): Promise<{distance: number, durationText: string, distanceText: string}> => {
-    if (!routesLib) return { distance: 0, durationText: '', distanceText: '' };
-    
-    const service = new routesLib.DistanceMatrixService();
-    try {
-      const response = await service.getDistanceMatrix({
-        origins: [{lat: lat1, lng: lon1}],
-        destinations: [{lat: lat2, lng: lon2}],
-        travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.METRIC,
-      });
-
-      if (response.rows[0]?.elements[0]?.status === google.maps.DistanceMatrixElementStatus.OK) {
-        const element = response.rows[0].elements[0];
-        return {
-          distance: (element.distance.value / 1000) * 1.05, // adding 5% real world buffer
-          distanceText: element.distance.text,
-          durationText: element.duration.text
-        };
-      }
-    } catch (e) {
-      console.error("Distance matrix failed", e);
-    }
-    
-    // Fallback to Haversine
-    const R = 6371;
+    // 1. Calculate Haversine offline distance first (highly optimized, no network)
+    const R = 6371; // Earth radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
               Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c;
-    const dist = d * 1.25;
-    
-    const hours = Math.floor(dist / 52); 
-    const mins = Math.round(((dist / 52) - hours) * 60);
+    const rawDistance = R * c;
+    const drivingEstDistance = Math.round(rawDistance * 1.28); // Adding ~28% buffer to approximate real road-route distance
 
-    return { 
-      distance: dist, 
-      distanceText: `${Math.round(dist)} KM`, 
-      durationText: `${hours > 0 ? `${hours}h ` : ''}${mins}m` 
+    const hours = Math.floor(drivingEstDistance / 55); 
+    const mins = Math.round(((drivingEstDistance / 52) - hours) * 60);
+    const fallbackResult = {
+      distance: drivingEstDistance,
+      distanceText: `${drivingEstDistance} KM`,
+      durationText: `${hours > 0 ? `${hours}h ` : ''}${mins > 0 ? `${mins}m` : '0m'}`
     };
+
+    return fallbackResult;
   };
 
+  // Consolidated City Coordinate Lookup
   useEffect(() => {
-    const fetchDistance = async () => {
+    const pKey = pickup.toLowerCase().trim();
+    if (pKey) {
+      const match = OFFLINE_CITIES_DATABASE.find(c => 
+        c.name.toLowerCase() === pKey || 
+        c.tamilName.toLowerCase() === pKey
+      );
+      if (match) {
+        setPickupCoords(prev => (prev?.[0] === match.coords[0] && prev?.[1] === match.coords[1] ? prev : match.coords));
+      }
+    }
+  }, [pickup]);
+
+  useEffect(() => {
+    const dKey = drop.toLowerCase().trim();
+    if (dKey) {
+      const match = OFFLINE_CITIES_DATABASE.find(c => 
+        c.name.toLowerCase() === dKey || 
+        c.tamilName.toLowerCase() === dKey
+      );
+      if (match) {
+        setDropCoords(prev => (prev?.[0] === match.coords[0] && prev?.[1] === match.coords[1] ? prev : match.coords));
+      }
+    }
+  }, [drop]);
+
+  useEffect(() => {
+    if (!pickup.trim() || !drop.trim()) {
+      setRouteInfo(null);
+      setDistanceKm(0);
+    }
+  }, [pickup, drop]);
+
+  // Decoupled distance calculator: Runs only when coordinates change.
+  useEffect(() => {
+    const fetchDistance = () => {
       if (pickupCoords && dropCoords) {
-        setIsCalculatingRoute(true);
-        const result = await calculateDistance(pickupCoords[0], pickupCoords[1], dropCoords[0], dropCoords[1]);
+        const result = calculateOfflineDistance(pickup, drop, pickupCoords, dropCoords);
+        
         setDistanceKm(result.distance);
         setRouteInfo({
           distanceDisplay: result.distanceText,
           durationDisplay: result.durationText
         });
-        setIsCalculatingRoute(false);
-      } else {
-        setRouteInfo(null);
-        setDistanceKm(0);
-        setIsCalculatingRoute(false);
+        
+        setManualDistance(Math.round(result.distance));
+      } else if (pickup.trim() && drop.trim()) {
+        const display = `${manualDistance} KM (Est.)`;
+        const duration = `${Math.floor(manualDistance / 55)}h ${Math.round(((manualDistance / 55) % 1) * 60)}m`;
+        
+        setDistanceKm(manualDistance);
+        setRouteInfo({
+          distanceDisplay: display,
+          durationDisplay: duration
+        });
       }
     };
     fetchDistance();
-  }, [pickupCoords, dropCoords, routesLib]);
+  }, [pickupCoords, dropCoords, pickup, drop, manualDistance]);
 
-  const suggestionsCache = useRef<Record<string, LocationSuggestion[]>>({});
-
-  const POPULAR_CITIES: LocationSuggestion[] = [
-    { display_name: 'Chennai' },
-    { display_name: 'Bangalore' },
-    { display_name: 'Madurai' },
-    { display_name: 'Kochi' },
-    { display_name: 'Tirupati' },
-    { display_name: 'Coimbatore' },
-    { display_name: 'Pondicherry' },
-    { display_name: 'Hyderabad' },
-    { display_name: 'Mysore' },
-    { display_name: 'Vijayawada' },
-    { display_name: 'Salem' },
-    { display_name: 'Trichy' },
-    { display_name: 'Vellore' },
-    { display_name: 'Tanjore' },
-    { display_name: 'Valasaravakkam' },
-    { display_name: 'Koyambedu' },
-    { display_name: 'Tambaram' },
-    { display_name: 'Nellikuppam' },
-    { display_name: 'Mahabalipuram' }
-  ];
-
-  const handleSearch = (query: string, type: 'pickup' | 'drop') => {
-    const trimmedQuery = query.trim();
+  // High speed debounced query handler: only updates text, coordinate lookup is decoupled
+  const handleSearch = useCallback((query: string, type: 'pickup' | 'drop') => {
     if (type === 'pickup') setPickup(query);
     else setDrop(query);
     
-    const timeoutRef = type === 'pickup' ? pickupTimeoutRef : dropTimeoutRef;
-    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    const trimmedQuery = query.trim();
+    const tRef = type === 'pickup' ? pickupTimeoutRef : dropTimeoutRef;
+    if (tRef.current) window.clearTimeout(tRef.current);
     
     if (trimmedQuery.length < 1) {
-      if (type === 'pickup') setPickupSuggestions(POPULAR_CITIES);
-      else setDropSuggestions(POPULAR_CITIES);
+      if (type === 'pickup') { setPickupSuggestions(POPULAR_CITIES); setPickupCoords(null); }
+      else { setDropSuggestions(POPULAR_CITIES); setDropCoords(null); }
       return;
     }
 
-    // PERFORMANCE: Instant local matching for common South India hubs
-    // This gives an "intelligent" feel by providing top matches before the API returns
-    const normalizedQuery = trimmedQuery.toLowerCase();
-    const localMatches = POPULAR_CITIES.filter(city => {
-      const cityName = city.display_name.toLowerCase();
-      return cityName.startsWith(normalizedQuery) || cityName.split(' ').some(word => word.startsWith(normalizedQuery));
-    }).map(city => {
-      const cityName = city.display_name.toLowerCase();
-      const offset = cityName.indexOf(normalizedQuery);
-      return {
-        ...city,
-        matched_substrings: offset !== -1 ? [{ offset, length: normalizedQuery.length }] : []
-      };
-    });
+    tRef.current = window.setTimeout(() => {
+      const offlineResults = searchOfflineSuggestions(trimmedQuery);
+      const formattedResults: LocationSuggestion[] = offlineResults.map(city => ({
+        display_name: city.name,
+        main_text: city.name,
+        secondary_text: `${city.tamilName} • ${city.region}`,
+        lat: String(city.coords[0]),
+        lon: String(city.coords[1])
+      }));
 
-    if (localMatches.length > 0) {
-      if (type === 'pickup') setPickupSuggestions(localMatches);
-      else setDropSuggestions(localMatches);
-    }
+      if (type === 'pickup') setPickupSuggestions(formattedResults);
+      else setDropSuggestions(formattedResults);
+    }, 300);
+  }, []);
 
-    // Check cache for instant results if we've searched before
-    const cacheKey = `${normalizedQuery}`;
-    if (suggestionsCache.current[cacheKey]) {
-      const cachedResults = suggestionsCache.current[cacheKey];
-      if (type === 'pickup') setPickupSuggestions(cachedResults);
-      else setDropSuggestions(cachedResults);
-      return;
-    }
+  const renderHighlightedText = useCallback((text: string, matches?: any[]) => {
+    return <span className="opacity-90">{text}</span>;
+  }, []);
 
-    // Trigger high-speed API search
-    timeoutRef.current = window.setTimeout(() => { 
-      fetchSuggestions(trimmedQuery, type); 
-    }, 250); // Balanced for performance and responsiveness
-  };
-
-  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
-
-  const fetchSuggestions = (query: string, type: 'pickup' | 'drop') => {
-    if (!placesLib) return;
-    
-    if (!autocompleteServiceRef.current) {
-      autocompleteServiceRef.current = new placesLib.AutocompleteService();
-    }
-    
-    const setter = type === 'pickup' ? setIsSearchingPickup : setIsSearchingDrop;
-    const suggestionsSetter = type === 'pickup' ? setPickupSuggestions : setDropSuggestions;
-    
-    // Quick validation check for visual feedback
-    if (query.length > 2) {
-      // Clear error if typing
-    }
-
-    setter(true);
-    
-    const cacheKey = `${query.toLowerCase().trim()}`;
-    
-    // Bounds covering South India (approx 8N to 20N, 74E to 85E)
-    // Covers TN, KL, KA, AP, TS and Pondicherry
-    const southIndiaBounds = new google.maps.LatLngBounds(
-      new google.maps.LatLng(8.0, 74.0),
-      new google.maps.LatLng(19.5, 83.5)
-    );
-    
-    autocompleteServiceRef.current.getPlacePredictions({
-      input: query,
-      types: ['(regions)'], // Bias towards cities, towns, and regions
-      componentRestrictions: { country: 'in' },
-      bounds: southIndiaBounds
-    }, (predictions, status) => {
-      setter(false);
-      if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-        // Strict filtering to remove businesses, street addresses, and non-geographic types
-        const filteredPredictions = predictions.filter(p => {
-          const t = p.types;
-          // Only allow localities, sublocalities, and administrative areas (cities/towns)
-          const isGeographic = t.some(type => 
-            ['locality', 'sublocality', 'administrative_area_level_3', 'neighborhood', 'political'].includes(type)
-          );
-          const isEstablishment = t.includes('establishment') || t.includes('point_of_interest');
-          const isPostal = t.includes('postal_code');
-          
-          return isGeographic && !isEstablishment && !isPostal;
-        });
-
-        const results = filteredPredictions.map((p) => ({
-          display_name: p.structured_formatting.main_text,
-          place_id: p.place_id,
-          main_text: p.structured_formatting.main_text,
-          secondary_text: p.structured_formatting.secondary_text,
-          matched_substrings: p.structured_formatting.main_text_matched_substrings,
-        }));
-
-        // Store in cache
-        suggestionsCache.current[cacheKey] = results;
-        suggestionsSetter(results);
-      } else {
-        suggestionsSetter([]);
-      }
-    });
-  };
-
-  const renderHighlightedText = (text: string, matches?: google.maps.places.PredictionSubstring[]) => {
-    if (!matches || matches.length === 0) return <span>{text}</span>;
-
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-
-    // Google API returns matches in order, but we sort to be safe
-    [...matches].sort((a, b) => a.offset - b.offset).forEach((match, i) => {
-      // Add regular text before match
-      if (match.offset > lastIndex) {
-        parts.push(<span key={`text-${i}`} className="opacity-70">{text.substring(lastIndex, match.offset)}</span>);
-      }
-      // Add highlighted part
-      parts.push(
-        <span key={`match-${i}`} className="text-[#D4AF37] font-black group-hover:text-[#FCF6BA] transition-colors relative">
-          {text.substring(match.offset, match.offset + match.length)}
-          <span className="absolute bottom-0 left-0 w-full h-[1px] bg-[#D4AF37]/30 blur-[0.5px]"></span>
-        </span>
-      );
-      lastIndex = match.offset + match.length;
-    });
-
-    // Add remaining text
-    if (lastIndex < text.length) {
-      parts.push(<span key="text-end" className="opacity-70">{text.substring(lastIndex)}</span>);
-    }
-
-    return <div className="flex items-center gap-0.5">{parts}</div>;
-  };
-
-  const handleSelectSuggestion = (suggestion: LocationSuggestion, type: 'pickup' | 'drop') => {
+  const handleSelectSuggestion = useCallback((suggestion: LocationSuggestion, type: 'pickup' | 'drop') => {
     let name = suggestion.display_name.split(',')[0];
     name = name.replace(/District/gi, '').trim();
 
-    if (type === 'pickup') { setPickup(name); setPickupSuggestions([]); }
-    else { setDrop(name); setDropSuggestions([]); }
+    if (type === 'pickup') { 
+      setPickup(name); 
+      setPickupSuggestions([]); 
+    } else { 
+      setDrop(name); 
+      setDropSuggestions([]); 
+    }
 
-    if (!geocodingLib || !suggestion.place_id) return;
-    const geocoder = new geocodingLib.Geocoder();
-    geocoder.geocode({ placeId: suggestion.place_id }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        const location = results[0].geometry.location;
-        const coords: [number, number] = [location.lat(), location.lng()];
-        if (type === 'pickup') setPickupCoords(coords);
-        else setDropCoords(coords);
-      }
-    });
-  };
+    // Direct pre-calculated offline coordinates support
+    if (suggestion.lat && suggestion.lon) {
+      const coords: [number, number] = [parseFloat(suggestion.lat), parseFloat(suggestion.lon)];
+      if (type === 'pickup') setPickupCoords(coords);
+      else setDropCoords(coords);
+    }
+  }, []);
 
   const handleVehicleSelect = (id: string) => { 
     setSelectedVehicleId(id); 
@@ -477,7 +461,7 @@ const BookingForm: React.FC = () => {
     setIsCheckingReferral(true);
     setReferralError(null);
     try {
-      const result = await ReferralService.validateCode(referralCode, user?.id);
+      const result = await ReferralService.validateCode(referralCode, user?.id, user?.mobile);
       if (result.valid) {
         setIsReferralValid(true);
         setReferralDiscount(result.discount || 0);
@@ -514,7 +498,6 @@ const BookingForm: React.FC = () => {
   };
 
   const handleReset = () => {
-    setIsRefreshing(true);
     setPickup(''); setDrop(''); setDate(''); setReturnDate(''); setTime('');
     if (!user) setMobile('');
     setPickupCoords(null); setDropCoords(null);
@@ -523,26 +506,38 @@ const BookingForm: React.FC = () => {
     setReferralCode(''); setIsReferralValid(false); setReferralDiscount(0); 
     setPromoCode(''); setIsPromoValid(false); setPromoDiscount(0);
     setShowOffersInput(false);
-    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isBaseInfoFilled || !selectedVehicleId) return;
+    console.log("BOOKING BUTTON CLICKED");
+    if (isSubmitting) {
+       console.log("Blocking: already submitting");
+       return;
+    }
+
+    if (!isBaseInfoFilled || !selectedVehicleId) {
+       console.log("VALIDATION FAILED", { isBaseInfoFilled, selectedVehicleId, service, pickup, drop, date, time });
+       if (!isBaseInfoFilled) {
+         alert("Please fill in all location and date/time details.");
+       } else if (!selectedVehicleId) {
+         alert("Please select a vehicle to proceed.");
+       }
+       return;
+    }
+
     if (!mobile || mobile.trim().length < 10) {
-      alert("Please enter a valid 10-digit mobile number to proceed.");
+      console.log("VALIDATION FAILED: Mobile length", mobile?.length);
+      alert("Please enter a valid 10-digit mobile number.");
       return;
     }
+
+    console.log("BOOKING SUBMIT STARTED");
     setIsSubmitting(true);
-    let finalDiscountAmount = 0;
-    let appliedCode = null;
-    if (isPromoValid) {
-      finalDiscountAmount = promoDiscount;
-      appliedCode = promoCode;
-    } else if (isReferralValid) {
-      finalDiscountAmount = referralDiscount;
-      appliedCode = referralCode;
-    }
+    
+    const finalDiscountApplied = fareEstimate?.discountApplied || 0;
+    const appliedCode = isPromoValid ? promoCode : (isReferralValid ? referralCode : null);
+
     const bookingData = {
       service,
       pickup,
@@ -555,56 +550,86 @@ const BookingForm: React.FC = () => {
       vehicle: selectedVehicle?.name,
       price: fareEstimate?.amount,
       referralCode: appliedCode,
-      discountAmount: finalDiscountAmount
+      discountAmount: finalDiscountApplied
     };
 
-    try {
-      // 1. Save to database immediately
-      let finalBookingId = '';
+    // 1. BACKGROUND DB SAVE
+    (async () => {
       try {
-        const savedBooking = await BookingService.saveBooking(bookingData);
-        finalBookingId = savedBooking.bookingId;
-      } catch (dbError) {
-        finalBookingId = `GEE-${Date.now().toString().slice(-6)}`;
-      }
-      setBookingId(finalBookingId);
-
-      // 2. Show success state
-      setIsSuccess(true);
-
-      // 3. Prepare and redirect to WhatsApp
-      let msg = `*Booking Confirmed ✅*\n*Geevee Travels*\n\nStatus: CONFIRMED\n\nService: ${service}\nPickup: ${pickup}\nDrop: ${drop}\nDate: ${date}\nTime: ${time}`;
-      if (service === ServiceType.ROUND_TRIP && returnDate) {
-        msg += `\nReturn Date: ${returnDate}`;
-      }
-      if (user) msg += `\nCustomer: ${user.name}`;
-      if (mobile) msg += `\nMobile: ${mobile}`;
-      msg += `\nVehicle: ${selectedVehicle?.name}`;
-      if (fareEstimate) {
-        msg += `\n\n*Fare Breakdown:*`;
-        if (finalDiscountAmount > 0) {
-           msg += `\nOriginal: ₹${fareEstimate.originalAmount}`;
-           msg += `\nDiscount: -₹${finalDiscountAmount} (Code: ${appliedCode})`;
-           msg += `\n*Final Fare: ₹${fareEstimate.amount}*`;
-        } else {
-           msg += `\nEst. Fare: ₹${fareEstimate.amount}`;
+        console.log("SUPABASE INSERT START - Payload:", bookingData);
+        const result = await BookingService.saveBooking(bookingData);
+        if (result.success) {
+          console.log("SUPABASE INSERT SUCCESS - ID:", result.bookingId);
+          setBookingId(result.bookingId); // Update to the real DB ID
+          
+          if (user?.mobile) {
+              if (pointsRedeemed) { // Consume Redeemed Points
+                  const pointsCost = (pointsDiscount / 100) * 500;
+                  await ReferralService.redeemPoints(user.mobile, pointsCost);
+              }
+              // Create or Update Customer, use appliedCode as referred_by. 
+              // `createCustomer` automatically handles referral logic if `referred_by` is provided and the customer is new.
+              const existingCust = await CustomerService.getCustomer(user.mobile);
+              if (!existingCust && appliedCode && !isPromoValid) {
+                  // Find referrer mobile by code
+                  const { data: refOwner } = await getSupabase().from('customers').select('mobile').eq('referral_code', appliedCode.toUpperCase()).single();
+                  await CustomerService.createCustomer({
+                     mobile: user.mobile,
+                     name: user.name,
+                     email: user.email,
+                     referred_by: refOwner?.mobile
+                  });
+              } else if (!existingCust) {
+                  await CustomerService.createCustomer({
+                     mobile: user.mobile,
+                     name: user.name,
+                     email: user.email
+                  });
+              } else {
+                  // User exists, just completed a booking, give them points for the booking? (Bonus Points)
+                  await CustomerService.updateLoyaltyTier(user.mobile, (existingCust.loyalty_tier === 'Platinum' ? 15 : existingCust.loyalty_tier === 'Gold' ? 5 : 0) + 1); // Mock trip inc
+              }
+          }
         }
-        msg += `\n(${fareEstimate.breakdown})`;
+        
+        // Email notifications
+        const emailjsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const emailjsTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        
+        if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey && result.bookingId) {
+           const commonParams = {
+            to_email: 'geeveetravels3334@gmail.com',
+            booking_id: result.bookingId,
+            customer_name: user ? user.name : 'Guest',
+            mobile: mobile,
+            service_type: service,
+            pickup_location: pickup,
+            drop_location: drop,
+            pickup_date: date,
+            pickup_time: time,
+            vehicle: selectedVehicle?.name,
+            price: fareEstimate?.amount
+           };
+           emailjs.send(emailjsServiceId, emailjsTemplateId, commonParams, emailjsPublicKey).catch(() => {});
+        }
+      } catch (err) {
+        console.error("BACKGROUND BOOKING ERROR:", err);
+      } finally {
+        setIsSubmitting(false);
       }
-      msg += `\n\nBooking ID: ${finalBookingId}`;
-      
-      const waUrl = `https://wa.me/91${WHATSAPP_BOOKING_NUMBER}?text=${encodeURIComponent(msg)}`;
-      
-      // Auto redirect after a short delay so user sees success screen briefly
-      setTimeout(() => {
-        window.open(waUrl, '_blank');
-      }, 1500);
+    })();
 
-    } catch (criticalError) {
-      alert("Error processing booking. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // 2. Prepare WhatsApp Message
+    // Use a temporary ID for WhatsApp if the real one isn't back yet, or just generic
+    const msgBookingId = `GEE-${Date.now().toString().slice(-6)}`;
+    const msg = `*Booking Order ✅*\n*Geevee Travels*\n\nService: ${service}\nPickup: ${pickup}\nDrop: ${drop}\nDate: ${date}\nTime: ${time}${service === ServiceType.ROUND_TRIP ? `\nReturn: ${returnDate}` : ''}\nVehicle: ${selectedVehicle?.name}\nCost: ₹${fareEstimate?.amount}\nMobile: ${mobile}\nRef ID: ${msgBookingId}`;
+    const waUrl = `https://wa.me/91${WHATSAPP_BOOKING_NUMBER}?text=${encodeURIComponent(msg)}`;
+
+    // 3. TRIGGER ACTIONS (Instant for user)
+    console.log("WHATSAPP REDIRECT");
+    window.open(waUrl, '_blank');
+    setIsSuccess(true);
   };
 
   if (isSuccess) return (
@@ -617,8 +642,8 @@ const BookingForm: React.FC = () => {
         <div className="w-28 h-28 bg-[#D4AF37]/10 text-[#D4AF37] rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-[#D4AF37]/25 shadow-[0_15px_30px_rgba(212,175,55,0.15)] animate-[pulse_2s_infinite]">
           <CheckCircle2 size={56} />
         </div>
-        <h2 className="text-4xl md:text-6xl font-normal text-white mb-6 tracking-tight font-serif italic" style={{ fontFamily: 'var(--font-serif)' }}>
-          Journey <span className="text-luxury-gold-soft italic font-normal">Initiated</span>
+        <h2 className="text-3xl md:text-5xl font-normal text-white mb-6 tracking-tight font-serif italic" style={{ fontFamily: 'var(--font-serif)' }}>
+          Booking Confirmed <span className="text-luxury-gold-soft italic font-normal">Successfully</span>
         </h2>
         <div className="inline-block bg-white/5 border border-white/10 px-6 py-2.5 rounded-xl mb-8">
            <p className="text-[#D4AF37] font-mono font-bold tracking-widest text-xs uppercase">Booking ID: <span className="text-white font-sans">{bookingId}</span></p>
@@ -658,7 +683,7 @@ const BookingForm: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/5 via-transparent to-transparent opacity-45 pointer-events-none z-0"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#D4AF37]/10 via-transparent to-transparent opacity-80 z-0 animate-pulse-soft pointer-events-none"></div>
 
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 relative z-10">
+        <form id="booking-form-primary" onSubmit={handleBooking} className="flex flex-col lg:flex-row gap-12 lg:gap-16 relative z-10">
           {/* Left Side: Form Controls */}
           <div className="flex-grow lg:w-7/12">
             <div className="mb-10 md:mb-12">
@@ -668,7 +693,14 @@ const BookingForm: React.FC = () => {
               <p className="text-[#9CA3AF] font-medium text-lg">
                 {t.hero.bookNow || "Experience premium custom travel planning tailored to your destination."}
               </p>
+              {isMapsDegraded && (
+                <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-[#D4AF37]/5 border border-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-mono font-bold uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse"></span>
+                  Geev Travel Premium South-India Directory Active
+                </div>
+              )}
             </div>
+
             
             {/* Service Type Toggles */}
             <div className="flex bg-white/5 backdrop-blur-lg p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] gap-1.5 md:gap-2 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] mb-10 md:mb-12 w-full sm:w-fit">
@@ -684,7 +716,7 @@ const BookingForm: React.FC = () => {
               ))}
             </div>
 
-            <form onSubmit={handleBooking} className="space-y-8 md:space-y-10 relative z-10">
+            <div className="space-y-8 md:space-y-10 relative z-10">
               {/* Location Inputs with Suggestions - Grid Refactoring for Compactness */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 relative">
                 <div className="relative group z-30">
@@ -834,6 +866,19 @@ const BookingForm: React.FC = () => {
                     />
                   </div>
                 </div>
+                <div className="col-span-2 sm:col-span-1 relative group">
+                  <label className="block text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.35em] mb-2 md:mb-4 ml-2 font-mono">Email (Optional)</label>
+                  <div className="relative">
+                    <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-[#9CA3AF] group-focus-within:text-[#D4AF37] transition-all"><Mail size={16} /></div>
+                    <input 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="For booking confirmation"
+                      className={`w-full bg-white/5 border ${email.includes('@') ? 'border-[#D4AF37]/30' : 'border-white/10'} focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 rounded-xl md:rounded-[1.5rem] py-4 md:py-6 pl-12 md:pl-16 pr-4 font-bold text-white outline-none transition-all text-[11px] md:text-sm backdrop-blur-sm`}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Collapsible Vehicle Selection */}
@@ -906,12 +951,12 @@ const BookingForm: React.FC = () => {
               {/* Gold Premium Submit CTA for Mobile */}
               <button 
                 type="submit" 
-                disabled={isSubmitting || !selectedVehicleId}
+                disabled={isSubmitting}
                 className="lg:hidden w-full bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:from-[#FCF6BA] hover:via-[#BF953F] hover:to-[#FCF6BA] text-[#040812] py-6 rounded-[1.5rem] md:rounded-2xl font-black text-base disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-4 group active:scale-[0.98] uppercase tracking-[0.3em] shadow-[0_15px_30px_rgba(212,175,55,0.25)] hover:shadow-[0_20px_40px_rgba(212,175,55,0.4)] transition-all duration-500"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="animate-spin text-[#040812]" size={24} /> Synchronizing...
+                    <Loader2 className="animate-spin text-[#040812]" size={24} /> Sending Booking...
                   </>
                 ) : (
                   <>
@@ -919,7 +964,7 @@ const BookingForm: React.FC = () => {
                   </>
                 )}
               </button>
-            </form>
+            </div>
           </div>
 
           {/* Right Side: Summary & Valuation (5/12 width or fixed equivalent) */}
@@ -960,16 +1005,47 @@ const BookingForm: React.FC = () => {
                        </div>
 
                        <div>
-                          <p className="text-[10px] font-mono font-gray-500 uppercase tracking-[0.3em] mb-2">Protocol Details</p>
+                        {pickup.trim() && drop.trim() && (!pickupCoords || !dropCoords || isMapsDegraded) && (
+                           <div className="bg-white/5 border border-white/5 hover:border-[#D4AF37]/35 rounded-[2rem] p-6 mb-8 text-left transition-all">
+                             <div className="flex justify-between items-center mb-3">
+                               <label className="text-[10px] font-mono font-bold text-[#D4AF37] uppercase tracking-[0.25em]">Custom Distance</label>
+                               <span className="text-[#FCF6BA] font-serif italic text-lg">{manualDistance} KM</span>
+                             </div>
+                             <input 
+                               type="range" 
+                               min="20" 
+                               max="800" 
+                               step="5"
+                               value={manualDistance} 
+                               onChange={(e) => setManualDistance(Number(e.target.value))}
+                               className="w-full accent-[#D4AF37] cursor-pointer bg-white/10 rounded-lg appearance-none h-1"
+                             />
+                             <div className="flex justify-between text-[8px] text-[#9CA3AF] font-mono mt-2 uppercase tracking-wide">
+                               <span>20 KM</span>
+                               <span>Slide to adjust fare</span>
+                               <span>800 KM</span>
+                             </div>
+                           </div>
+                        )}
+                        <p className="text-[10px] font-mono font-gray-500 uppercase tracking-[0.3em] mb-2">Protocol Details</p>
                           {isCalculatingRoute ? <div className="h-10 w-full animate-pulse bg-white/5 rounded-lg"></div> : (
                             <div className="space-y-4">
                               <p className="text-sm text-slate-300 leading-relaxed italic opacity-85 whitespace-pre-line">{fareEstimate?.breakdown || 'Awaiting route selection...'}</p>
                               {fareEstimate?.amount ? (
                                 <div className="flex flex-wrap gap-2 text-[8px] font-mono font-bold text-[#FCF6BA] uppercase tracking-widest mt-2">
-                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Driver Bata Extra</span>
-                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Toll Extra</span>
-                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Permit Extra</span>
-                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Hills Charges Extra</span>
+                                  {fareEstimate?.driverBatta ? (
+                                    <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Driver Batta: ₹{fareEstimate.driverBatta}/day</span>
+                                  ) : <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Driver Batta: Extra</span>}
+                                  {fareEstimate?.tollEstimate ? (
+                                    <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Est. Tollway: ~₹{fareEstimate.tollEstimate}</span>
+                                  ) : <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Tolls: Extra</span>}
+                                  {fareEstimate?.hillCharges ? (
+                                    <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Hill Station Charge: Included</span>
+                                  ) : null}
+                                  {fareEstimate?.nightCharges ? (
+                                    <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">Night Charge: Included</span>
+                                  ) : null}
+                                  <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-2 py-1 rounded">No State Permits & Tolls Pre-paid</span>
                                 </div>
                               ) : null}
                             </div>
@@ -982,7 +1058,7 @@ const BookingForm: React.FC = () => {
                     {fareEstimate?.discountApplied ? (
                          <div className="space-y-4">
                             <div className="flex justify-between items-end">
-                               <span className="text-sm text-slate-450 font-mono font-bold uppercase tracking-widest opacity-60">Valuation:</span>
+                               <span className="text-sm text-slate-400 font-mono font-bold uppercase tracking-widest opacity-60">Valuation:</span>
                                <span className="text-2xl text-slate-500 line-through font-serif italic">₹{fareEstimate.originalAmount}</span>
                             </div>
                             <div className="flex justify-between items-end">
@@ -990,26 +1066,26 @@ const BookingForm: React.FC = () => {
                                <span className="text-xl text-green-400 font-bold">-₹{fareEstimate.discountApplied}</span>
                             </div>
                             <div className="flex justify-between items-end pt-6">
-                               <span className="text-[11px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.4em]">Final Quote</span>
-                               <span className="text-7xl font-normal text-[#FCF6BA] tracking-tight drop-shadow-[0_0_35px_rgba(212,175,55,0.25)] font-serif italic">₹{fareEstimate.amount}</span>
+                               <span className="text-[11px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.4em]">Est. Fare Range (Discounted)</span>
+                               <span className="text-4xl md:text-5xl lg:text-5xl font-normal text-[#FCF6BA] tracking-tight drop-shadow-[0_0_35px_rgba(212,175,55,0.25)] font-serif italic">{fareEstimate.rangeDisplay || `₹${fareEstimate.amount}`}</span>
                             </div>
                          </div>
                       ) : (
                          <div className="flex justify-between items-end">
                             <div>
-                               <p className="text-[10px] text-slate-450 font-mono font-bold uppercase tracking-[0.5em] mb-4">Ultimate Valuation</p>
-                               <span className="text-7xl font-normal text-[#FCF6BA] tracking-tight font-serif italic drop-shadow-[0_0_35px_rgba(212,175,55,0.25)]">{fareEstimate?.amount ? `₹${fareEstimate.amount}` : '--'}</span>
+                               <p className="text-[10px] text-slate-400 font-mono font-bold uppercase tracking-[0.5em] mb-4">Ultimate Range (Est.)</p>
+                               <span className="text-4xl md:text-5xl lg:text-5xl font-normal text-[#FCF6BA] tracking-tight font-serif italic drop-shadow-[0_0_35px_rgba(212,175,55,0.25)]">{fareEstimate?.rangeDisplay ? fareEstimate.rangeDisplay : (fareEstimate?.amount ? `₹${fareEstimate.amount}` : '--')}</span>
                             </div>
                          </div>
                       )}
                       
                       {/* Premium Gold CTA for Desktop */}
                       <button 
-                        onClick={handleBooking}
+                        type="submit"
                         disabled={isSubmitting}
                         className="hidden lg:flex w-full bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:from-[#FCF6BA] hover:via-[#BF953F] hover:to-[#FCF6BA] text-[#040812] py-6 rounded-2xl font-black text-xs uppercase tracking-[0.25em] transition-all duration-500 mt-10 items-center justify-center gap-4 group shadow-[0_15px_30px_rgba(212,175,55,0.25)] hover:shadow-[0_20px_40px_rgba(212,175,55,0.4)]"
                       >
-                         {isSubmitting ? <Loader2 className="animate-spin text-[#040812]" size={20} /> : <>{t.booking.confirm} <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform text-[#040812]" /></>}
+                         {isSubmitting ? <><Loader2 className="animate-spin text-[#040812]" size={20} /> SENDING BOOKING...</> : <>{t.booking.confirm} <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform text-[#040812]" /></>}
                       </button>
                   </div>
                 </div>
@@ -1039,7 +1115,7 @@ const BookingForm: React.FC = () => {
                              disabled={isReferralValid}
                              className="flex-grow bg-[#040812] border border-white/10 p-4 rounded-xl text-[10px] font-black uppercase outline-none focus:border-[#D4AF37]/60 text-white placeholder-slate-600 focus:ring-2 focus:ring-[#D4AF37]/20"
                            />
-                           <button onClick={handleApplyPromo} className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:scale-105 active:scale-95 text-[#040812] px-6 py-4.5 rounded-xl font-bold text-[10px] uppercase transition-all shadow-[0_5px_15px_rgba(212,175,55,0.15)] flex items-center justify-center">Verify</button>
+                           <button type="button" onClick={handleApplyPromo} className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:scale-105 active:scale-95 text-[#040812] px-6 py-4.5 rounded-xl font-bold text-[10px] uppercase transition-all shadow-[0_5px_15px_rgba(212,175,55,0.15)] flex items-center justify-center">Verify</button>
                         </div>
                         <div className="flex gap-2">
                            <input 
@@ -1050,10 +1126,32 @@ const BookingForm: React.FC = () => {
                              disabled={isPromoValid}
                              className="flex-grow bg-[#040812] border border-white/10 p-4 rounded-xl text-[10px] font-black uppercase outline-none focus:border-[#D4AF37]/60 text-white placeholder-slate-600 focus:ring-2 focus:ring-[#D4AF37]/20"
                            />
-                           <button onClick={handleApplyReferral} className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:scale-105 active:scale-95 text-[#040812] px-6 py-4.5 rounded-xl font-bold text-[10px] uppercase transition-all shadow-[0_5px_15px_rgba(212,175,55,0.15)] flex items-center justify-center">Verify</button>
+                           <button type="button" onClick={handleApplyReferral} className="bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] hover:scale-105 active:scale-95 text-[#040812] px-6 py-4.5 rounded-xl font-bold text-[10px] uppercase transition-all shadow-[0_5px_15px_rgba(212,175,55,0.15)] flex items-center justify-center">Verify</button>
                         </div>
                         {isPromoValid && <p className="text-[9px] text-green-400 font-mono font-bold uppercase tracking-widest text-center">FIRST10 Integrated</p>}
                         {isReferralValid && <p className="text-[9px] text-green-400 font-mono font-bold uppercase tracking-widest text-center">Legacy Credit Validated</p>}
+
+                        {user && getAvailablePoints() > 0 && (
+                            <div className="pt-4 border-t border-white/10 mt-4">
+                                <p className="text-[9px] text-[#D4AF37] font-bold uppercase tracking-[0.2em] mb-3 text-center">Rewards Wallet</p>
+                                <div className="flex items-center justify-between bg-[#040812] p-4 rounded-xl border border-white/5">
+                                    <div>
+                                        <p className="text-white font-bold text-xs">{getAvailablePoints()} Points Available</p>
+                                        <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-1">500 PTS = ₹100 OFF</p>
+                                    </div>
+                                    {getAvailablePoints() >= 500 ? (
+                                        pointsRedeemed ? (
+                                            <button type="button" onClick={handleRemovePoints} className="px-4 py-2 bg-red-900/40 text-red-400 rounded-lg text-[9px] font-black uppercase tracking-widest border border-red-900/50 hover:bg-red-900/60 transition-colors">REMOVE OFF</button>
+                                        ) : (
+                                            <button type="button" onClick={handleApplyPoints} className="px-4 py-2 bg-[#D4AF37] text-[#040812] rounded-lg text-[9px] font-black uppercase tracking-widest border border-[#D4AF37] hover:brightness-110 transition-colors shadow-sm">REDEEM NOW</button>
+                                        )
+                                    ) : (
+                                        <div className="px-4 py-2 bg-white/5 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/5">NOT ENOUGH</div>
+                                    )}
+                                </div>
+                                {pointsRedeemed && <p className="text-[9px] text-green-400 font-mono font-bold uppercase tracking-widest text-center mt-3">₹{pointsDiscount} Points Discount Applied</p>}
+                            </div>
+                        )}
                      </div>
                    )}
                 </div>
@@ -1066,11 +1164,11 @@ const BookingForm: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </form>
 
         <div className="flex flex-col items-center gap-4 opacity-40 hover:opacity-100 transition-opacity duration-700 mt-16">
            <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/45 to-transparent"></div>
-           <p className="text-center text-[10px] font-mono font-bold text-slate-450 uppercase tracking-[0.6em]">
+           <p className="text-center text-[10px] font-mono font-bold text-slate-400 uppercase tracking-[0.6em]">
               Geevee Travels Premium Luxury Logistics
            </p>
         </div>

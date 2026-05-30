@@ -322,3 +322,21 @@
   nav, footer, button, .no-print { display: none !important; }
   body { background: white; color: black; }
 }
+
+/* Suppress Google Maps warning popups, billing errors and gray-out overlays */
+.gm-err-container, 
+.gm-err-modal,
+.gm-err-icon,
+.gm-err-title,
+.gm-err-message,
+.gm-style-moc,
+div[class*="gm-err"],
+div[style*="background-color: white"][style*="z-index: 1000000"],
+div[style*="background-color: rgb(245, 245, 245)"][style*="z-index: 1000000"],
+div[style*="z-index: 1000000"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+

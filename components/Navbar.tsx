@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, User, LogOut, Crown, Globe, ChevronDown, LayoutGrid, Phone, MessageSquare, Sun, Moon } from 'lucide-react';
+import { Menu, X, User, LogOut, Crown, Globe, ChevronDown, LayoutGrid, Sun, Moon } from 'lucide-react';
 import Logo from './Logo.tsx';
 import { useLanguage } from '../contexts/LanguageContext.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
@@ -28,9 +28,6 @@ const Navbar: React.FC<NavbarProps> = ({
   const { language, setLanguage, t, fontClass, availableLanguages } = useLanguage();
   const { user, isAuthenticated, openAuthModal, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  
-  const CONTACT_NUMBER = '9025743325';
-  const WHATSAPP_URL = `https://wa.me/91${CONTACT_NUMBER}?text=${encodeURIComponent("Hi GVDROPTAXI, I'd like to book a ride.")}`;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -185,9 +182,10 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {isAuthenticated && user ? (
-              <div className="relative group/profile">
+              <div className="relative z-[150]">
                  <button 
-                    className="flex items-center gap-3 pl-2 pr-4 py-2 rounded-[1.25rem] border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 backdrop-blur-md shadow-sm"
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="flex items-center gap-3 pl-2 pr-4 py-2 rounded-[1.25rem] border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 backdrop-blur-md shadow-sm active:scale-95 transition-all outline-none"
                  >
                     <div className="w-10 h-10 rounded-xl bg-[#D4AF37] text-[#040812] flex items-center justify-center font-black text-sm uppercase shadow-2xl transform transition-all group-hover/profile:rotate-12 group-hover/profile:scale-110">
                        {user.name.charAt(0)}
@@ -195,25 +193,30 @@ const Navbar: React.FC<NavbarProps> = ({
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] hidden xl:block text-slate-800 dark:text-white">
                        {user.name.split(' ')[0]}
                     </span>
-                    <ChevronDown size={14} className="text-slate-800/55 dark:text-white/50" />
+                    <ChevronDown size={14} className={`text-slate-800/55 dark:text-white/50 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
                  </button>
 
-                 <div className="absolute top-full right-0 mt-4 w-72 bg-white dark:bg-[#040812] backdrop-blur-3xl rounded-[2rem] shadow-2xl border border-slate-200 dark:border-[#D4AF37]/30 overflow-hidden opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible transition-all duration-500 transform translate-y-4 group-hover/profile:translate-y-0 z-[110]">
+                 {/* Click outside overlay */}
+                 {showProfileMenu && (
+                   <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
+                 )}
+
+                 <div className={`absolute top-full right-0 mt-4 w-72 bg-white dark:bg-[#040812] backdrop-blur-3xl rounded-[2rem] shadow-2xl border border-slate-200 dark:border-[#D4AF37]/30 overflow-hidden transition-all duration-300 transform z-[160] origin-top-right ${showProfileMenu ? 'opacity-100 visible scale-100 translate-y-0' : 'opacity-0 invisible scale-95 translate-y-4'}`}>
                     <div className="p-8 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-gradient-to-br dark:from-white/[0.02] dark:to-transparent">
                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D4AF37] mb-2 opacity-70">Authenticated User</p>
                        <p className="text-xl font-black truncate tracking-tighter text-slate-900 dark:text-white">{user.name}</p>
                     </div>
                     <div className="p-4 space-y-1">
-                       <button onClick={onOpenProfile} className="w-full text-left px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#D4AF37] flex items-center gap-4 transition-all">
+                       <button onClick={() => { onOpenProfile(); setShowProfileMenu(false); }} className="w-full text-left px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#D4AF37] flex items-center gap-4 transition-all">
                           <div className="p-2.5 bg-slate-900/5 dark:bg-white/5 rounded-xl"><User size={16} /></div>
-                          Profile
+                          Dashboard
                        </button>
-                       <button onClick={onOpenMyTrips} className="w-full text-left px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#D4AF37] flex items-center gap-4 transition-all">
+                       <button onClick={() => { onOpenMyTrips(); setShowProfileMenu(false); }} className="w-full text-left px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#D4AF37] flex items-center gap-4 transition-all">
                           <div className="p-2.5 bg-slate-900/5 dark:bg-white/5 rounded-xl"><LayoutGrid size={16} /></div>
                           My Trips
                        </button>
                        <div className="my-3 h-px bg-slate-200 dark:bg-white/10 mx-6"></div>
-                       <button onClick={logout} className="w-full text-left px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-red-500 hover:bg-red-500/10 flex items-center gap-4 transition-all">
+                       <button onClick={() => { logout(); setShowProfileMenu(false); }} className="w-full text-left px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-red-500 hover:bg-red-500/10 flex items-center gap-4 transition-all">
                           <div className="p-2.5 bg-red-500/10 rounded-xl"><LogOut size={16} /></div>
                           Logout
                        </button>

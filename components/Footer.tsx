@@ -252,8 +252,16 @@ const Footer: React.FC<FooterProps> = ({ id }) => {
             <a href="#" className="hover:text-[#D4AF37] transition-all duration-300">Privacy Protocol</a>
             <a href="#" className="hover:text-[#D4AF37] transition-all duration-300">Refund Logic</a>
             <div className="flex items-center gap-2.5">
-               <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
-               <button onClick={() => window.location.hash = '#admin'} className="hover:text-[#D4AF37] transition-all duration-300">System Gateway</button>
+               <span className="w-1.5 h-1.5 rounded-full bg-geevee-orange shadow-[0_0_6px_rgba(234,88,12,0.6)] animate-pulse"></span>
+               <button 
+                 onClick={() => {
+                   window.location.hash = '#admin';
+                   window.scrollTo(0, 0);
+                 }} 
+                 className="hover:text-geevee-orange transition-all duration-300 font-black text-[#D4AF37] border border-[#D4AF37]/20 px-3 py-1 rounded-lg bg-white/5"
+               >
+                 Admin Access
+               </button>
             </div>
           </div>
         </div>

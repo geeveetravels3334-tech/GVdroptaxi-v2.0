@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Star, Quote, Send, User, MessageSquare, CheckCircle, MapPin, Loader2, ChevronDown, ChevronUp, PenTool, ChevronLeft, ChevronRight, Check, Sparkles } from 'lucide-react';
+import { Star, Quote, Send, User, MessageSquare, CheckCircle, MapPin, Loader2, ChevronDown, ChevronUp, PenTool, ChevronLeft, ChevronRight, Check, Sparkles, UserCheck } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext.tsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ReviewService, Review as DBReview } from '../services/review.ts';
 
 interface Review {
   name: string;
@@ -10,6 +11,7 @@ interface Review {
   rating: number;
   date: string;
   archiveId: string;
+  isVerified?: boolean;
 }
 
 const INITIAL_REVIEWS: Review[] = [
@@ -19,23 +21,8 @@ const INITIAL_REVIEWS: Review[] = [
     text: 'The travel experience was absolute perfection. The luxury SUV was immaculately maintained, driver details were shared well in advance, and the ride was exceptionally smooth. A true standard of premium custom travel.',
     rating: 5,
     date: '2 days ago',
-    archiveId: '#TR-8842'
-  },
-  {
-    name: 'Priya Raman',
-    role: 'Airport Lounge Executive',
-    text: 'Our corporate travel is fully managed through their premium fleet. For our high-profile clients arriving at Chennai International, they consistently deliver stellar punctuality, pristine hospitality, and matchless class.',
-    rating: 5,
-    date: '1 week ago',
-    archiveId: '#TR-9120'
-  },
-  {
-    name: 'Karthik Raja',
-    role: 'Mahabalipuram Explorer',
-    text: 'The scenic coastal drive was breathtaking. Excellent luxury suspension, premium climate zones, and a highly courteous chauffeur who knew the heritage routes perfectly. Truly a presidential transport experience.',
-    rating: 5,
-    date: '2 weeks ago',
-    archiveId: '#TR-7751'
+    archiveId: '#TR-8842',
+    isVerified: true
   },
   {
     name: 'Sarah Jenkins',
@@ -43,15 +30,8 @@ const INITIAL_REVIEWS: Review[] = [
     text: 'A flawless luxury travel booking from start to finish. Punctual airport transfer, transparent premium fares, and high-end vehicle ride comfort. Our weekend excursion was extraordinarily special.',
     rating: 5,
     date: '3 weeks ago',
-    archiveId: '#TR-6310'
-  },
-  {
-    name: 'Dr. Vignesh Kumar',
-    role: 'Corporate Fleet Partner',
-    text: 'Reliability and style are hard to pair together. This elite outstation service has consistently exceeded all our high corporate standards. Easily the most reliable premium chauffeured fleet in South India.',
-    rating: 5,
-    date: '1 month ago',
-    archiveId: '#TR-1044'
+    archiveId: '#TR-6310',
+    isVerified: true
   }
 ];
 
@@ -64,6 +44,7 @@ const Testimonials: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isFormExpanded, setIsFormExpanded] = useState(false);
   const [isAutoplayActive, setIsAutoplayActive] = useState(true);
+  const [trustMetrics, setTrustMetrics] = useState({ totalTrips: 1200, avgRating: 4.8, verifiedReviewsCount: 0, happyCustomers: 1200 });
   const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Feedback form fields
@@ -73,9 +54,35 @@ const Testimonials: React.FC = () => {
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
 
+  useEffect(() => {
+    fetchRealReviews();
+    fetchMetrics();
+  }, []);
+
+  const fetchMetrics = async () => {
+    const metrics = await ReviewService.getTrustMetrics();
+    setTrustMetrics(metrics);
+  };
+
+  const fetchRealReviews = async () => {
+    const featured = await ReviewService.getFeaturedReviews();
+    if (featured && featured.length > 0) {
+      const formatted: Review[] = featured.map(r => ({
+        name: r.customer_name,
+        role: r.route || 'Verified Traveler',
+        text: r.comment,
+        rating: r.rating,
+        date: new Date(r.created_at).toLocaleDateString(),
+        archiveId: `#TR-${r.id.substring(0, 4)}`.toUpperCase(),
+        isVerified: true
+      }));
+      setReviews([...formatted, ...INITIAL_REVIEWS]);
+    }
+  };
+
   // Autoplay handler
   useEffect(() => {
-    if (isAutoplayActive && !isFormExpanded) {
+    if (isAutoplayActive && !isFormExpanded && reviews.length > 0) {
       autoplayTimerRef.current = setInterval(() => {
         handleNextSlide();
       }, 7000);
@@ -102,28 +109,23 @@ const Testimonials: React.FC = () => {
     setCurrentIndex(idx);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !text) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const generatedArchiveId = `#TR-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newReview: Review = {
-        name,
-        role: role || 'Prestigious Client',
-        text,
-        rating,
-        date: 'Just now',
-        archiveId: generatedArchiveId
-      };
-      
-      const updatedReviews = [newReview, ...reviews];
-      setReviews(updatedReviews);
+    const result = await ReviewService.submitReview({
+      customer_name: name,
+      route: role || 'Public Submission',
+      comment: text,
+      rating,
+      customer_mobile: 'GUEST',
+      booking_id: 'GUEST_SUBMISSION'
+    });
+
+    if (result.success) {
       setIsSubmitting(false);
       setSubmitted(true);
-      setCurrentIndex(0); // View the newly submitted review immediately
-      
       setTimeout(() => {
         setSubmitted(false);
         setIsFormExpanded(false);
@@ -132,7 +134,10 @@ const Testimonials: React.FC = () => {
         setText(''); 
         setRating(5);
       }, 3000);
-    }, 1500);
+    } else {
+      setIsSubmitting(false);
+      alert('Failed to submit review. Please try again.');
+    }
   };
 
   const activeReview = reviews[currentIndex];
@@ -143,6 +148,29 @@ const Testimonials: React.FC = () => {
       {/* Background Decorative Lighting Refractory Orbs */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#D4AF37]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-slate-200/50 dark:bg-[#0C1E38]/20 blur-[150px] rounded-full pointer-events-none z-0"></div>
+
+      {/* Trust Metrics Section */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-24 relative z-10">
+        {[
+          { label: 'Voyages Completed', value: `${trustMetrics.totalTrips}+`, icon: CheckCircle },
+          { label: 'Average Rating', value: trustMetrics.avgRating, icon: Star },
+          { label: 'Verified Reviews', value: trustMetrics.verifiedReviewsCount, icon: UserCheck },
+          { label: 'Happy Customers', value: `${trustMetrics.happyCustomers}+`, icon: Sparkles }
+        ].map((metric, i) => (
+          <motion.div 
+            key={i} 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            viewport={{ once: true }}
+            className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 text-center group hover:border-[#D4AF37]/30 transition-all"
+          >
+            <metric.icon className="mx-auto mb-4 text-[#D4AF37] group-hover:scale-110 transition-transform" size={24} />
+            <p className="text-3xl md:text-4xl font-black text-white tracking-tighter mb-1">{metric.value}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{metric.label}</p>
+          </motion.div>
+        ))}
+      </div>
 
       {/* Grid Overlay Texture Matching Hero style */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.015)_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none z-0"></div>
@@ -170,136 +198,137 @@ const Testimonials: React.FC = () => {
       {/* Main Luxury Slider Carousel Workspace */}
       <div className="max-w-4xl mx-auto relative z-10">
         
-        {/* autoplays progress indicator line on bottom side of title */}
-        <div 
-          className="relative glass-card rounded-[2.5rem] md:rounded-[3.5rem] p-8 sm:p-12 md:p-16 shadow-xl dark:shadow-[0_45px_135px_rgba(0,0,0,0.65)] hover:shadow-[0_45px_135px_rgba(212,175,55,0.1)] border border-slate-200 dark:border-white/10 hover:border-[#D4AF37]/45 transition-all duration-500 bg-white dark:bg-gradient-to-b dark:from-[#0C1E38]/85 dark:via-[#040812]/95 dark:to-[#040812] backdrop-blur-3xl overflow-hidden group min-h-[380px] flex flex-col justify-between premium-hover-lift cursor-pointer luxury-click"
-          onMouseEnter={() => setIsAutoplayActive(false)}
-          onMouseLeave={() => setIsAutoplayActive(true)}
-        >
-          {/* Subtle Dynamic Gold Light Halo following active review change */}
-          <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#D4AF37]/5 blur-[70px] rounded-full pointer-events-none group-hover:bg-[#D4AF37]/8 transition-all duration-1000"></div>
-          
-          {/* Elegant Oversized Line-art Quote Icon */}
-          <Quote className="absolute top-10 right-10 stroke-1 stroke-[#D4AF37] text-transparent opacity-[0.05] group-hover:opacity-[0.12] transition-opacity duration-1000 pointer-events-none animate-slow-pulse" size={140} />
+        {reviews.length > 0 && activeReview && (
+          <div 
+            className="relative glass-card rounded-[2.5rem] md:rounded-[3.5rem] p-8 sm:p-12 md:p-16 shadow-xl dark:shadow-[0_45px_135px_rgba(0,0,0,0.65)] hover:shadow-[0_45px_135px_rgba(212,175,55,0.1)] border border-slate-200 dark:border-white/10 hover:border-[#D4AF37]/45 transition-all duration-500 bg-white dark:bg-gradient-to-b dark:from-[#0C1E38]/85 dark:via-[#040812]/95 dark:to-[#040812] backdrop-blur-3xl overflow-hidden group min-h-[380px] flex flex-col justify-between premium-hover-lift cursor-pointer luxury-click"
+            onMouseEnter={() => setIsAutoplayActive(false)}
+            onMouseLeave={() => setIsAutoplayActive(true)}
+          >
+            {/* Subtle Dynamic Gold Light Halo following active review change */}
+            <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#D4AF37]/5 blur-[70px] rounded-full pointer-events-none group-hover:bg-[#D4AF37]/8 transition-all duration-1000"></div>
+            
+            {/* Elegant Oversized Line-art Quote Icon */}
+            <Quote className="absolute top-10 right-10 stroke-1 stroke-[#D4AF37] text-transparent opacity-[0.05] group-hover:opacity-[0.12] transition-opacity duration-1000 pointer-events-none animate-slow-pulse" size={140} />
 
-          <div className="relative z-10 flex-grow flex flex-col justify-between">
-            {/* Slide Body Container with custom motion wrapper */}
-            <div className="overflow-visible relative mb-8 md:mb-12">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={currentIndex}
-                  initial={{ 
-                    opacity: 0, 
-                    x: slideDirection === 'right' ? 70 : -70,
-                    scale: 0.98
-                  }}
-                  animate={{ 
-                    opacity: 1, 
-                    x: 0,
-                    scale: 1
-                  }}
-                  exit={{ 
-                    opacity: 0, 
-                    x: slideDirection === 'right' ? -70 : 70,
-                    scale: 0.98
-                  }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="space-y-6 md:space-y-8"
-                >
-                  {/* Rating Stars and Passport Status Badge */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    
-                    {/* Backlit Gold Star Rating Badge */}
-                    <div className="flex gap-1.5 bg-[#D4AF37]/5 px-4 py-2 rounded-full border border-[#D4AF37]/20 w-fit">
-                      {[...Array(5)].map((_, idx) => (
-                        <Star 
-                          key={idx} 
-                          size={15} 
-                          fill={idx < activeReview.rating ? '#D4AF37' : 'none'} 
-                          className={idx < activeReview.rating ? 'text-[#D4AF37] filter drop-shadow-[0_0_5px_rgba(212,175,55,0.4)]' : 'text-white/10'} 
-                        />
-                      ))}
-                    </div>
+            <div className="relative z-10 flex-grow flex flex-col justify-between">
+              {/* Slide Body Container with custom motion wrapper */}
+              <div className="overflow-visible relative mb-8 md:mb-12">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={currentIndex}
+                    initial={{ 
+                      opacity: 0, 
+                      x: slideDirection === 'right' ? 70 : -70,
+                      scale: 0.98
+                    }}
+                    animate={{ 
+                      opacity: 1, 
+                      x: 0,
+                      scale: 1
+                    }}
+                    exit={{ 
+                      opacity: 0, 
+                      x: slideDirection === 'right' ? -70 : 70,
+                      scale: 0.98
+                    }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="space-y-6 md:space-y-8"
+                  >
+                    {/* Rating Stars and Passport Status Badge */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      
+                      {/* Backlit Gold Star Rating Badge */}
+                      <div className="flex gap-1.5 bg-[#D4AF37]/5 px-4 py-2 rounded-full border border-[#D4AF37]/20 w-fit">
+                        {[...Array(5)].map((_, idx) => (
+                          <Star 
+                            key={idx} 
+                            size={15} 
+                            fill={idx < activeReview.rating ? '#D4AF37' : 'none'} 
+                            className={idx < activeReview.rating ? 'text-[#D4AF37] filter drop-shadow-[0_0_5px_rgba(212,175,55,0.4)]' : 'text-white/10'} 
+                          />
+                        ))}
+                      </div>
 
-                    {/* Passport Travel Segment Badge */}
-                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[9px] font-mono tracking-widest text-[#D4AF37] font-bold uppercase">
-                      <MapPin size={10} className="text-[#D4AF37]" />
-                      Route Verified
-                    </div>
-                  </div>
-
-                  {/* Testimonial Core Quote */}
-                   <div className="relative pl-6 sm:pl-8 border-l-2 border-[#D4AF37]/30 group-hover:border-[#D4AF37]/60 transition-colors duration-700">
-                    <p className={`text-slate-800 dark:text-[#D1D5DB] text-lg sm:text-2xl md:text-3xl font-light leading-relaxed italic ${fontClass}`} style={{ fontFamily: 'var(--font-serif)' }}>
-                      "{activeReview.text}"
-                    </p>
-                  </div>
-
-                  {/* Customer Information Signature Footer */}
-                  <div className="flex items-center gap-4 sm:gap-6 pt-4">
-                    {/* Initials badge framed with elite details */}
-                    <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] p-[1.5px] shadow-[0_10px_20px_rgba(212,175,55,0.15)]">
-                      <div className="w-full h-full rounded-2xl bg-slate-100 dark:bg-[#040812] flex items-center justify-center text-[#D4AF37] dark:text-[#FCF6BA] font-serif italic text-xl font-bold">
-                        {activeReview.name.charAt(0)}
+                      {/* Passport Travel Segment Badge */}
+                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[9px] font-mono tracking-widest text-[#D4AF37] font-bold uppercase">
+                        <MapPin size={10} className="text-[#D4AF37]" />
+                        {activeReview.isVerified ? '✓ Verified Traveler' : 'Route Verified'}
                       </div>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight">{activeReview.name}</h4>
-                        <CheckCircle size={14} className="text-[#D4AF37]" />
-                      </div>
-                      <p className="text-[10px] font-bold text-slate-500 dark:text-[#9CA3AF] uppercase tracking-widest">{activeReview.role}</p>
+
+                    {/* Testimonial Core Quote */}
+                     <div className="relative pl-6 sm:pl-8 border-l-2 border-[#D4AF37]/30 group-hover:border-[#D4AF37]/60 transition-colors duration-700">
+                      <p className={`text-slate-800 dark:text-[#D1D5DB] text-lg sm:text-2xl md:text-3xl font-light leading-relaxed italic ${fontClass}`} style={{ fontFamily: 'var(--font-serif)' }}>
+                        "{activeReview.text}"
+                      </p>
                     </div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
 
-            {/* Pagination Controls and Progress Grid Container */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t border-slate-200 dark:border-white/10 z-20">
-              <div className="flex items-center gap-4">
-                {/* Visual Digital Counter */}
-                <span className="font-mono text-xs text-[#D4AF37] font-bold uppercase tracking-wider">
-                  Archive {activeReview.archiveId}
-                </span>
-                <span className="h-4 w-[1px] bg-slate-200 dark:bg-white/10"></span>
-                <span className="font-mono text-xs text-slate-500 dark:text-[#9CA3AF]">
-                  <span className="text-[#D4AF37] dark:text-[#FCF6BA] font-bold">{(currentIndex + 1).toString().padStart(2, '0')}</span> / {reviews.length.toString().padStart(2, '0')}
-                </span>
+                    {/* Customer Information Signature Footer */}
+                    <div className="flex items-center gap-4 sm:gap-6 pt-4">
+                      {/* Initials badge framed with elite details */}
+                      <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] p-[1.5px] shadow-[0_10px_20px_rgba(212,175,55,0.15)]">
+                        <div className="w-full h-full rounded-2xl bg-slate-100 dark:bg-[#040812] flex items-center justify-center text-[#D4AF37] dark:text-[#FCF6BA] font-serif italic text-xl font-bold">
+                          {activeReview.name.charAt(0)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight">{activeReview.name}</h4>
+                          <CheckCircle size={14} className="text-[#D4AF37]" />
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-500 dark:text-[#9CA3AF] uppercase tracking-widest">{activeReview.role}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              {/* Slider Progress Bar */}
-              <div className="w-full sm:w-48 h-[3px] bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden relative">
-                <div 
-                  className="h-full bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] transition-all duration-500 ease-out shadow-[0_0_8px_rgba(212,175,55,0.6)]"
-                  style={{ width: `${((currentIndex + 1) / reviews.length) * 100}%` }}
-                ></div>
-              </div>
+              {/* Pagination Controls and Progress Grid Container */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t border-slate-200 dark:border-white/10 z-20">
+                <div className="flex items-center gap-4">
+                  {/* Visual Digital Counter */}
+                  <span className="font-mono text-xs text-[#D4AF37] font-bold uppercase tracking-wider">
+                    Archive {activeReview.archiveId}
+                  </span>
+                  <span className="h-4 w-[1px] bg-slate-200 dark:bg-white/10"></span>
+                  <span className="font-mono text-xs text-slate-500 dark:text-[#9CA3AF]">
+                    <span className="text-[#D4AF37] dark:text-[#FCF6BA] font-bold">{(currentIndex + 1).toString().padStart(2, '0')}</span> / {reviews.length.toString().padStart(2, '0')}
+                  </span>
+                </div>
 
-              {/* Chevrons Layout */}
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={handlePrevSlide}
-                  aria-label="Previous Slide" 
-                  className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 focus:outline-none flex items-center justify-center transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.15)] active:scale-95 luxury-click group"
-                >
-                  <div className="group-hover:-translate-x-0.5 transition-transform duration-300">
-                    <ChevronLeft size={18} />
-                  </div>
-                </button>
-                <button 
-                  onClick={handleNextSlide}
-                  aria-label="Next Slide" 
-                  className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 focus:outline-none flex items-center justify-center transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.15)] active:scale-95 luxury-click group"
-                >
-                  <div className="group-hover:translate-x-0.5 transition-transform duration-300">
-                    <ChevronRight size={18} />
-                  </div>
-                </button>
+                {/* Slider Progress Bar */}
+                <div className="w-full sm:w-48 h-[3px] bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden relative">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] transition-all duration-500 ease-out shadow-[0_0_8px_rgba(212,175,55,0.6)]"
+                    style={{ width: `${((currentIndex + 1) / reviews.length) * 100}%` }}
+                  ></div>
+                </div>
+
+                {/* Chevrons Layout */}
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={handlePrevSlide}
+                    aria-label="Previous Slide" 
+                    className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 focus:outline-none flex items-center justify-center transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.15)] active:scale-95 luxury-click group"
+                  >
+                    <div className="group-hover:-translate-x-0.5 transition-transform duration-300">
+                      <ChevronLeft size={18} />
+                    </div>
+                  </button>
+                  <button 
+                    onClick={handleNextSlide}
+                    aria-label="Next Slide" 
+                    className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 focus:outline-none flex items-center justify-center transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.15)] active:scale-95 luxury-click group"
+                  >
+                    <div className="group-hover:translate-x-0.5 transition-transform duration-300">
+                      <ChevronRight size={18} />
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Dynamic Navigation Dot Carousel Row */}
         <div className="flex items-center justify-center gap-2 mt-8">
@@ -354,7 +383,7 @@ const Testimonials: React.FC = () => {
                       </div>
                       <h4 className="text-2xl font-serif italic text-[#D4AF37] dark:text-[#FCF6BA]">Journey Synchronized</h4>
                       <p className="text-slate-600 dark:text-slate-300 text-sm max-w-sm mx-auto leading-relaxed">
-                        Your traveler narrative has been successfully captured and indexed into our prestigious digital catalog archives. Thank you for traveling with us.
+                        Your traveler narrative has been successfully captured and submitted for moderation into our prestigious digital catalog archives. Thank you for traveling with us.
                       </p>
                     </motion.div>
                   ) : (

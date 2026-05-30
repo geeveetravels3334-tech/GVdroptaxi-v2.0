@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronUp, Shield } from 'lucide-react';
 import Navbar from './components/Navbar.tsx';
 import Hero from './components/Hero.tsx';
@@ -22,7 +22,6 @@ import PackageView from './components/PackageView.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import AdminGate from './components/AdminGate.tsx';
 import AuthModal from './components/AuthModal.tsx';
-import UserBookings from './components/UserBookings.tsx';
 import UserProfile from './components/UserProfile.tsx';
 import AllPackages from './components/AllPackages.tsx';
 import VerificationScreen from './components/VerificationScreen.tsx';
@@ -34,17 +33,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import { PricingProvider } from './contexts/PricingContext.tsx';
-import { APIProvider } from '@vis.gl/react-google-maps';
 
 import WhatsAppBanner from './components/WhatsAppBanner.tsx';
-
-const API_KEY =
-  (import.meta as any).env?.VITE_GOOGLE_MAPS_PLATFORM_KEY ||
-  (import.meta as any).env?.GOOGLE_MAPS_PLATFORM_KEY ||
-  process.env.GOOGLE_MAPS_PLATFORM_KEY ||
-  '';
-
-const hasValidKey = Boolean(API_KEY) && API_KEY !== 'YOUR_API_KEY';
 
 const LiquidBackground = React.memo(() => (
   <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
@@ -59,12 +49,12 @@ const LiquidBackground = React.memo(() => (
 // Memoized main content sections to prevent unnecessary re-renders on scroll/theme changes
 const HomeSections = React.memo(({ onSelectPackage }: { onSelectPackage: (id: string | null) => void }) => {
   return (
-    <>
+    <div id="booking">
       <div id="home">
         <Hero />
       </div>
       
-      <div className="container mx-auto px-4 md:px-8 max-w-7xl -mt-10 lg:-mt-32 relative z-20">
+      <div className="container mx-auto px-4 md:px-8 max-w-7xl py-12 lg:py-24 relative z-20">
         <BookingForm />
       </div>
 
@@ -138,7 +128,7 @@ const HomeSections = React.memo(({ onSelectPackage }: { onSelectPackage: (id: st
       </section>
 
       <WhatsAppBanner />
-    </>
+    </div>
   );
 });
 
@@ -164,8 +154,8 @@ const AppContent: React.FC = () => {
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAdminVerified, setIsAdminVerified] = useState(false);
   
-  const [isUserBookingsOpen, setIsUserBookingsOpen] = useState(false);
-  const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
+  const [isCustomerDashboardOpen, setIsCustomerDashboardOpen] = useState(false);
+  const [dashboardTab, setDashboardTab] = useState<'profile' | 'trips'>('profile');
   
   // Use language hook to get the correct font family class
   const { fontClass } = useLanguage();
@@ -217,21 +207,21 @@ const AppContent: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSelectPackage = (id: string | null) => {
+  const handleSelectPackage = useCallback((id: string | null) => {
     setSelectedPackageId(id);
     if (id) {
       setIsAllPackagesOpen(false); // Close list if specific package selected
       window.scrollTo(0, 0); // Scroll to top when opening a package
     }
-  };
+  }, []);
 
-  const handleOpenAllPackages = () => {
+  const handleOpenAllPackages = useCallback(() => {
     setSelectedPackageId(null);
     setIsAllPackagesOpen(true);
     window.scrollTo(0, 0);
-  };
+  }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = useCallback(() => {
     setIsDarkMode((prev) => {
       const next = !prev;
       try {
@@ -246,7 +236,7 @@ const AppContent: React.FC = () => {
       }
       return next;
     });
-  };
+  }, []);
 
   // Block access if user is logged in but not verified
   if (isAuthenticated && !isVerified) {
@@ -286,8 +276,8 @@ const AppContent: React.FC = () => {
       <div className="relative z-10">
         <Navbar 
           onSelectPackage={handleSelectPackage} 
-          onOpenMyTrips={() => setIsUserBookingsOpen(true)}
-          onOpenProfile={() => setIsUserProfileOpen(true)}
+          onOpenMyTrips={() => { setDashboardTab('trips'); setIsCustomerDashboardOpen(true); }}
+          onOpenProfile={() => { setDashboardTab('profile'); setIsCustomerDashboardOpen(true); }}
           onOpenAllPackages={handleOpenAllPackages}
           isDarkMode={isDarkMode}
           toggleDarkMode={toggleDarkMode}
@@ -331,8 +321,11 @@ const AppContent: React.FC = () => {
         <FloatingAIButton />
         <LiveBookingNotification />
         <AuthModal />
-        <UserBookings isOpen={isUserBookingsOpen} onClose={() => setIsUserBookingsOpen(false)} />
-        <UserProfile isOpen={isUserProfileOpen} onClose={() => setIsUserProfileOpen(false)} />
+        <UserProfile 
+          isOpen={isCustomerDashboardOpen} 
+          onClose={() => setIsCustomerDashboardOpen(false)} 
+          initialTab={dashboardTab} 
+        />
 
         <button
           onClick={scrollToTop}
@@ -359,35 +352,14 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  if (!hasValidKey) {
-    return (
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontFamily:'sans-serif', backgroundColor: '#040812', color: 'white'}}>
-        <div style={{textAlign:'center',maxWidth:520, padding: 32, borderRadius: 24, border: '1px solid rgba(255,255,255,0.1)'}}>
-          <h2 style={{color: '#D4AF37', marginBottom: 16}}>Google Maps API Key Required</h2>
-          <p><strong>Step 1:</strong> <a href="https://console.cloud.google.com/google/maps-apis/start?utm_campaign=gmp-code-assist-ais" target="_blank" rel="noopener" style={{color: '#D4AF37'}}>Get an API Key</a></p>
-          <p><strong>Step 2:</strong> Add your key as a secret in AI Studio:</p>
-          <ul style={{textAlign:'left',lineHeight:'1.8'}}>
-            <li>Open <strong>Settings</strong> (⚙️ gear icon, <strong>top-right corner</strong>)</li>
-            <li>Select <strong>Secrets</strong></li>
-            <li>Type <code>GOOGLE_MAPS_PLATFORM_KEY</code> as the secret name, press <strong>Enter</strong></li>
-            <li>Paste your API key as the value, press <strong>Enter</strong></li>
-          </ul>
-          <p style={{marginTop: 16}}>The app rebuilds automatically after you add the secret.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <APIProvider apiKey={API_KEY} version="weekly">
-      <AuthProvider>
-        <PricingProvider>
-          <LanguageProvider>
-            <AppContent />
-          </LanguageProvider>
-        </PricingProvider>
-      </AuthProvider>
-    </APIProvider>
+    <AuthProvider>
+      <PricingProvider>
+        <LanguageProvider>
+          <AppContent />
+        </LanguageProvider>
+      </PricingProvider>
+    </AuthProvider>
   );
 };
 

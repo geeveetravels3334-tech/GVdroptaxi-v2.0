@@ -17,6 +17,12 @@ import {
 } from 'lucide-react';
 import { usePricing } from '../contexts/PricingContext.tsx';
 import { useLanguage } from '../contexts/LanguageContext.tsx';
+import { 
+  searchOfflineSuggestions, 
+  calculateOfflineDistance, 
+  estimatePremiumOfflineFareByVehicle,
+  OFFLINE_CITIES_DATABASE 
+} from '../utils/geoData.ts';
 
 // Preset scenic premium routes with pre-calculated distances
 const PRESET_ROUTES = [
@@ -83,8 +89,28 @@ const TariffCalculator: React.FC = () => {
     }
   };
 
-  const filteredPickupSuggestions = POPULAR_CITIES.filter(c => c.toLowerCase().includes(pickup.toLowerCase().trim()));
-  const filteredDropSuggestions = POPULAR_CITIES.filter(c => c.toLowerCase().includes(drop.toLowerCase().trim()));
+  const filteredPickupSuggestions = pickup.trim().length > 0
+    ? searchOfflineSuggestions(pickup).map(city => city.name)
+    : POPULAR_CITIES;
+
+  const filteredDropSuggestions = drop.trim().length > 0
+    ? searchOfflineSuggestions(drop).map(city => city.name)
+    : POPULAR_CITIES;
+
+  // Auto-calculate distance locally if pickup and drop names match items in our South Indian Database
+  useEffect(() => {
+    if (pickup.trim() && drop.trim() && (tripType === 'oneway' || tripType === 'roundtrip')) {
+      const result = calculateOfflineDistance(pickup, drop);
+      if (result.distance > 0) {
+        setCustomDistance(Math.round(result.distance));
+        if (result.hasHills) {
+          setIncludeHillsCharge(true);
+        } else {
+          setIncludeHillsCharge(false);
+        }
+      }
+    }
+  }, [pickup, drop, tripType]);
 
   // Set default vehicle when loaded
   useEffect(() => {
@@ -690,12 +716,17 @@ const TariffCalculator: React.FC = () => {
               {/* Total display segment */}
               <div className="border-t border-[#D4AF37]/30 bg-gradient-to-r from-transparent via-[#D4AF37]/5 to-transparent p-4 rounded-xl flex flex-col items-center justify-center gap-1.5 mt-6">
                 <span className="text-[9px] font-black uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">Estimated Total Fare</span>
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-col items-center gap-1.5">
                   <span className="text-[#D4AF37] text-3xl font-black font-mono">
                     ₹{costs.grandTotal.toLocaleString('en-IN')}
                   </span>
+                  {selectedVehicle?.type && (
+                    <span className="text-[11px] md:text-xs font-serif italic text-slate-300 dark:text-slate-200 mt-1 opacity-95 text-center block">
+                      Est. Range: <strong className="text-[#FCF6BA] font-bold drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">{estimatePremiumOfflineFareByVehicle(customDistance, tripType === 'roundtrip', selectedVehicle.type).rangeDisplay}</strong>
+                    </span>
+                  )}
                 </div>
-                <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 text-center uppercase tracking-widest block leading-normal mt-1">
+                <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 text-center uppercase tracking-widest block leading-normal mt-2">
                   *Excludes interstate parking and local tourism entrance taxes
                 </span>
               </div>
