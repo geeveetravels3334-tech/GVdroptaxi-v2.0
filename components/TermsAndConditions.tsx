@@ -69,11 +69,11 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({ id: propId }) =
   };
 
   return (
-    <div id={sectionId} ref={sectionRef} className="container mx-auto px-4 py-20 md:py-32 max-w-7xl relative overflow-hidden">
+    <div id={sectionId} ref={sectionRef} className="container mx-auto px-4 py-10 md:py-24 max-w-7xl relative overflow-hidden">
       {/* Background Lighting */}
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#D4AF37]/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-10 border-b border-white/10 pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-10 border-b border-white/10 pb-8">
         <div>
           <div className={`inline-flex items-center gap-3 bg-white/5 text-[#D4AF37] border border-[#D4AF37]/20 backdrop-blur-md px-6 py-2.5 rounded-full text-[9px] font-black uppercase tracking-[0.25em] mb-6 ${fontClass}`}>
             <Shield size={12} />
@@ -85,11 +85,11 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({ id: propId }) =
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 mb-10 md:mb-16">
         {terms.map((term, index) => (
           <div 
             key={index}
-            className="bg-gradient-to-b from-[#0C1E38]/50 via-[#040812]/80 to-[#040812]/90 backdrop-blur-sm p-8 rounded-[2rem] border border-white/5 hover:border-[#D4AF37]/30 transition-all duration-500 shadow-xl group hover:shadow-[#D4AF37]/5 md:transform md:hover:-translate-y-1"
+            className="bg-gradient-to-b from-[#0C1E38]/50 via-[#040812]/80 to-[#040812]/90 backdrop-blur-sm p-5 sm:p-8 rounded-2xl md:rounded-[2rem] border border-white/5 hover:border-[#D4AF37]/30 transition-all duration-500 shadow-xl group hover:shadow-[#D4AF37]/5 md:transform md:hover:-translate-y-1"
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-white/5 p-3 rounded-xl text-[#D4AF37] border border-white/5 group-hover:bg-[#D4AF37] group-hover:text-[#040812] transition-colors duration-500">
@@ -121,7 +121,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({ id: propId }) =
         </div>
       </div>
 
-      <div className="bg-[#0C1E38] rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-16 flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl relative overflow-hidden border border-[#D4AF37]/25">
+      <div className="bg-[#0C1E38] rounded-[2.5rem] md:rounded-[4rem] p-5 md:p-16 flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl relative overflow-hidden border border-[#D4AF37]/25">
         <div className="absolute -right-24 -bottom-24 w-80 h-80 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="flex items-center gap-6 text-left relative z-10 w-full lg:w-auto">

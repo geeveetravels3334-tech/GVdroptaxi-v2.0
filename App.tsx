@@ -55,7 +55,7 @@ const HomeSections = React.memo(({ onSelectPackage }: { onSelectPackage: (id: st
         <Hero />
       </div>
       
-      <div className="container mx-auto px-4 md:px-8 max-w-7xl -mt-20 md:-mt-32 lg:-mt-40 relative z-30 pb-12 lg:pb-24">
+      <div className="container mx-auto px-4 md:px-8 max-w-7xl mt-6 md:-mt-32 lg:-mt-40 relative z-30 pb-12 lg:pb-24">
         <BookingForm />
       </div>
 
@@ -324,7 +324,7 @@ const AppContent: React.FC = () => {
 
         <Footer id="contact" />
         <FloatingAIButton />
-        <LiveBookingNotification />
+        {/* <LiveBookingNotification /> */}
         <AuthModal />
         <UserProfile 
           isOpen={isCustomerDashboardOpen} 

@@ -9,12 +9,12 @@ const CorporateServices: React.FC = () => {
   const c = t.corporate;
 
   return (
-    <section id="corporate" className="py-20 md:py-32 relative overflow-hidden">
+    <section id="corporate" className="py-10 md:py-32 relative overflow-hidden">
       {/* Cinematic Background Light */}
       <div className="absolute top-1/3 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none"></div>
 
       <div className="container mx-auto px-4 md:px-6 max-w-7xl relative z-10">
-        <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-center mb-20 md:mb-32">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-24 items-center mb-12 md:mb-32">
           <div className="lg:w-1/2 text-center lg:text-left">
             <div className={`inline-flex items-center gap-3 bg-white/5 backdrop-blur-md text-[#D4AF37] px-6 py-2.5 rounded-full text-[9px] font-black tracking-[0.25em] mb-8 uppercase border border-[#D4AF37]/20 shadow-sm ${fontClass}`}>
               <Briefcase size={12} className="text-[#D4AF37]" />
@@ -73,7 +73,7 @@ const CorporateServices: React.FC = () => {
         </div>
 
         {/* Highlight Banner */}
-        <div className="bg-gradient-to-r from-[#0C1E38] via-[#081326] to-[#040812] rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 text-white relative overflow-hidden border border-[#D4AF37]/25 shadow-[0_35px_100px_rgba(0,0,0,0.7)]">
+        <div className="bg-gradient-to-r from-[#0C1E38] via-[#081326] to-[#040812] rounded-[2.5rem] md:rounded-[3.5rem] p-5 md:p-16 text-white relative overflow-hidden border border-[#D4AF37]/25 shadow-[0_35px_100px_rgba(0,0,0,0.7)]">
            <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none hidden lg:block text-white">
               <Building2 size={350} />
            </div>
@@ -90,12 +90,12 @@ const CorporateServices: React.FC = () => {
                  </p>
               </div>
               <div className="shrink-0 flex gap-4 md:gap-6 w-full lg:w-auto">
-                 <div className="flex-1 text-center bg-white/[0.03] p-8 md:p-10 rounded-[1.75rem] border border-white/[0.05] min-w-[140px] shadow-sm backdrop-blur-md">
-                    <span className="block text-4xl md:text-5xl font-serif text-[#FCF6BA] mb-2 font-black tracking-tight">50+</span>
+                 <div className="flex-1 text-center bg-white/[0.03] p-4 sm:p-8 md:p-10 rounded-2xl md:rounded-[1.75rem] border border-white/[0.05] min-w-[120px] shadow-sm backdrop-blur-md">
+                    <span className="block text-3xl md:text-5xl font-serif text-[#FCF6BA] mb-2 font-black tracking-tight">50+</span>
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">Global Partners</span>
                  </div>
-                 <div className="flex-1 text-center bg-white/[0.03] p-8 md:p-10 rounded-[1.75rem] border border-white/[0.05] min-w-[140px] shadow-sm backdrop-blur-md">
-                    <span className="block text-4xl md:text-5xl font-serif text-[#FCF6BA] mb-2 font-black tracking-tight">24/7</span>
+                 <div className="flex-1 text-center bg-white/[0.03] p-4 sm:p-8 md:p-10 rounded-2xl md:rounded-[1.75rem] border border-white/[0.05] min-w-[120px] shadow-sm backdrop-blur-md">
+                    <span className="block text-3xl md:text-5xl font-serif text-[#FCF6BA] mb-2 font-black tracking-tight">24/7</span>
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">VIP Support</span>
                  </div>
               </div>

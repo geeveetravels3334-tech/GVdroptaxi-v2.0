@@ -48,11 +48,9 @@ const Navbar: React.FC<NavbarProps> = ({
 
   // Desktop/General Navigation Handler
   const handleNavClick = (id: string) => {
-    // If we are currently viewing a package or all packages, we need to go back home first
     onSelectPackage(null);
+    setIsMenuOpen(false);
     
-    // Smooth scroll to section
-    // We use a small timeout to ensure App component has time to render the sections if they were hidden
     setTimeout(() => {
       if (id === 'home') {
         window.scrollTo({ top: 0, behavior: 'smooth' });

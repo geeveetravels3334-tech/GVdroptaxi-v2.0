@@ -59,7 +59,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => {
       <div className="p-8 md:p-12 flex-grow flex flex-col z-20">
         <div className="flex justify-between items-start mb-6 md:mb-8 gap-4 md:gap-6">
           <div className="space-y-3">
-            <h4 className="text-2xl md:text-3.5xl font-normal tracking-tight text-white italic font-serif leading-none group-hover/card:text-luxury-gold-soft transition-colors">{vehicle.name}</h4>
+            <h4 className="text-2xl md:text-3.5xl font-normal tracking-tight text-slate-900 dark:text-white italic font-serif leading-none group-hover/card:text-[#B89225] dark:group-hover/card:text-[#D4AF37] transition-colors">{vehicle.name}</h4>
             <div className="inline-flex items-center gap-2 bg-[#D4AF37]/10 px-3 py-1.5 rounded-full border border-[#D4AF37]/30">
                <ShieldCheck size={12} className="text-[#D4AF37]" /> 
                <span className="text-luxury-gold font-black text-[9px] md:text-[10px] uppercase tracking-[0.3em]">Supreme Heritage Certified</span>
@@ -67,22 +67,22 @@ const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => {
           </div>
           <div className="text-right shrink-0">
             <p className="text-[8px] md:text-[9px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.4em] mb-1 leading-none">Valuation</p>
-            <span className="block text-3xl md:text-4.5xl font-normal text-luxury-gold-soft tracking-tight leading-none italic font-serif">₹{vehicle.pricePerKm}</span>
+            <span className="block text-3xl md:text-4.5xl font-normal text-[#B48F24] dark:text-luxury-gold-soft tracking-tight leading-none italic font-serif">₹{vehicle.pricePerKm}</span>
             <span className="text-[9px] md:text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest font-mono">/ km</span>
           </div>
         </div>
 
         {/* Signature Features Grid */}
         <div className="grid grid-cols-2 gap-3 md:gap-4 mb-8 md:mb-10">
-          <div className="bg-[#111827] backdrop-blur-md p-4 md:p-5 rounded-2xl border border-white/5 flex flex-col items-center gap-1.5 transition-colors group-hover/card:border-[#D4AF37]/15">
+          <div className="bg-slate-100 dark:bg-[#111827] backdrop-blur-md p-4 md:p-5 rounded-2xl border border-black/5 dark:border-white/5 flex flex-col items-center gap-1.5 transition-colors group-hover/card:border-[#D4AF37]/15">
              <Users size={16} className="text-[#D4AF37]" />
              <p className="text-[9px] md:text-[10px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em]">Personnel</p>
-             <p className="font-bold text-xs md:text-sm text-white">{vehicle.capacity} Travelers</p>
+             <p className="font-bold text-xs md:text-sm text-slate-900 dark:text-white">{vehicle.capacity} Travelers</p>
           </div>
-          <div className="bg-[#111827] backdrop-blur-md p-4 md:p-5 rounded-2xl border border-white/5 flex flex-col items-center gap-1.5 transition-colors group-hover/card:border-[#D4AF37]/15">
+          <div className="bg-slate-100 dark:bg-[#111827] backdrop-blur-md p-4 md:p-5 rounded-2xl border border-black/5 dark:border-white/5 flex flex-col items-center gap-1.5 transition-colors group-hover/card:border-[#D4AF37]/15">
              <Briefcase size={16} className="text-[#D4AF37]" />
              <p className="text-[9px] md:text-[10px] font-mono font-bold text-[#9CA3AF] uppercase tracking-[0.3em]">Volume</p>
-             <p className="font-bold text-xs md:text-sm text-white">4 Large Bags</p>
+             <p className="font-bold text-xs md:text-sm text-slate-900 dark:text-white">4 Large Bags</p>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => {
         <div className="mb-8 md:mb-10 flex-grow">
           <div className="space-y-3">
             {vehicle.features.slice(0, 3).map((f, i) => (
-              <div key={i} className="flex items-center gap-3 text-[#D1D5DB] text-[10px] md:text-xs font-medium tracking-tight">
+              <div key={i} className="flex items-center gap-3 text-slate-600 dark:text-[#D1D5DB] text-[10px] md:text-xs font-medium tracking-tight">
                 <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]" />
                 <span>{f}</span>
               </div>
@@ -124,7 +124,7 @@ const Fleet: React.FC = () => {
   const { language, t, fontClass } = useLanguage();
   const { vehicles } = usePricing();
   const [activeFilter, setActiveFilter] = useState<string>('All');
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const categories = useMemo(() => [
     { id: 'All', icon: <LayoutGrid size={16} /> },
@@ -158,7 +158,7 @@ const Fleet: React.FC = () => {
             </div>
             
             <h2 
-              className={`text-5xl md:text-8xl text-white mb-6 md:mb-10 tracking-tight leading-[0.9] cinematic-glow ${fontClass}`}
+              className={`text-5xl md:text-8xl text-slate-900 dark:text-white mb-6 md:mb-10 tracking-tight leading-[0.9] cinematic-glow ${fontClass}`}
               style={{ fontFamily: 'var(--font-serif)' }}
             >
               The <span className="text-[#D4AF37] italic font-normal">Collection</span>
@@ -177,11 +177,20 @@ const Fleet: React.FC = () => {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setActiveFilter(cat.id)}
+              onClick={() => {
+                setActiveFilter(cat.id);
+                setTimeout(() => {
+                  const gridElement = document.getElementById('vehicle-grid');
+                  if (gridElement) {
+                     const y = gridElement.getBoundingClientRect().top + window.scrollY - 120;
+                     window.scrollTo({top: y, behavior: 'smooth'});
+                  }
+                }, 10);
+              }}
               className={`snap-center shrink-0 px-6 md:px-10 py-3.5 md:py-5 rounded-xl md:rounded-2xl font-black text-[9px] md:text-xs tracking-[0.3em] uppercase transition-all duration-500 flex items-center gap-3 md:gap-4 border active:scale-95 ${
                 activeFilter === cat.id
                    ? 'bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#AA771C] border-[#D4AF37] text-[#0B0F1A] shadow-[0_15px_30px_rgba(212,175,55,0.3)]'
-                   : 'bg-white/5 border-white/5 text-slate-400 hover:border-[#D4AF37]/35 hover:text-white'
+                   : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:border-[#D4AF37]/35 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className={`${activeFilter === cat.id ? 'text-[#0B0F1A]' : 'text-[#D4AF37]'}`}>{cat.icon}</span>
@@ -190,71 +199,16 @@ const Fleet: React.FC = () => {
           ))}
         </div>
 
-        <AnimatePresence mode="wait">
-          {!isExpanded ? (
-            <motion.div 
-              key="button"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="max-w-5xl mx-auto pb-12"
-            >
-              <button 
-                onClick={() => setIsExpanded(true)}
-                className="w-full rounded-[2.5rem] md:rounded-[4rem] p-20 md:p-32 text-center group transition-all duration-700 border border-slate-200 dark:border-[#D4AF37]/25 relative overflow-hidden bg-slate-50 dark:bg-gradient-to-b dark:from-[#111827]/85 dark:via-[#0B0F1A]/95 dark:to-[#0B0F1A] shadow-xl dark:shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)] hover:shadow-[0_45px_135px_rgba(212,175,55,0.15)] premium-hover-lift luxury-click"
-              >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 z-0"></div>
-                
-                <div className="relative z-10 flex flex-col items-center gap-12">
-                  <div className="w-24 h-24 bg-white dark:bg-white/5 backdrop-blur-3xl rounded-[2rem] flex items-center justify-center shadow-2xl text-[#D4AF37] border border-slate-200 dark:border-white/10 group-hover:scale-110 group-hover:shadow-[#D4AF37]/20 transition-all duration-700">
-                    <LayoutGrid size={32} />
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <h4 className="text-3xl md:text-6xl font-black text-white tracking-tighter italic font-serif leading-none">
-                      Reveal the Full <span className="luxury-text-gradient">Portfolio</span>
-                    </h4>
-                    <p className="text-[#9CA3AF] font-medium text-sm md:text-lg max-w-lg mx-auto leading-relaxed">
-                      Observe all {VEHICLES.length} signature vehicles across our heritage collection. Optimized for absolute command.
-                    </p>
-                  </div>
-                  
-                  <div className="mt-8 flex items-center gap-6 text-[#D4AF37] font-black text-xs uppercase tracking-[0.5em] group-hover:gap-10 transition-all duration-700">
-                    Expand Archive <ArrowRight size={24} />
-                  </div>
-                </div>
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div 
-              key="grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
-              className="pb-12"
-            >
-              <div 
-                key="vehicle-grid"
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-24"
-              >
-                {filteredVehicles.map((v) => (
-                  <VehicleCard key={v.id} vehicle={v} />
-                ))}
-              </div>
-              
-              <div className="flex justify-center">
-                <button 
-                  onClick={() => setIsExpanded(false)}
-                  className="premium-glass-btn group px-16 py-8 rounded-full font-black text-[10px] uppercase tracking-[0.5em] flex items-center gap-6 transition-all duration-700 md:hover:scale-[1.05] border-[#D4AF37]/20"
-                >
-                  Minimize Catalog <ChevronUp size={24} className="text-[#D4AF37] group-hover:-translate-y-2 transition-transform duration-500" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="pb-12">
+          <div 
+            id="vehicle-grid"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-24"
+          >
+            {filteredVehicles.map((v) => (
+              <VehicleCard key={v.id} vehicle={v} />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

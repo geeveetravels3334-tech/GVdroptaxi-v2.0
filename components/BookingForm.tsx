@@ -675,7 +675,7 @@ const BookingForm: React.FC = () => {
       className="relative transform-gpu animate-slide-up"
     >
       {/* Frosted glass form container */}
-      <div className="relative rounded-[2.5rem] md:rounded-[3rem] p-8 lg:p-12 xl:p-16 shadow-[0_32px_80px_rgba(0,0,0,0.6)] max-w-7xl mx-auto transform-gpu transition-all duration-1000 bg-gradient-to-b from-[#111827]/85 via-[#0B0F1A]/95 to-[#0B0F1A] backdrop-blur-xl border border-[#D4AF37]/20 hover:border-[#D4AF37]/45 shadow-[0_0_50px_rgba(212,175,55,0.05)]">
+      <div className="relative rounded-[2.5rem] md:rounded-[3rem] p-4 sm:p-8 lg:p-12 xl:p-16 shadow-[0_32px_80px_rgba(0,0,0,0.6)] max-w-7xl mx-auto transform-gpu transition-all duration-1000 bg-gradient-to-b from-[#111827]/85 via-[#0B0F1A]/95 to-[#0B0F1A] backdrop-blur-xl border border-[#D4AF37]/20 hover:border-[#D4AF37]/45 shadow-[0_0_50px_rgba(212,175,55,0.05)]">
         
         {/* Glow Effects */}
         <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/5 via-transparent to-transparent opacity-45 pointer-events-none z-0"></div>
@@ -1115,7 +1115,7 @@ const BookingForm: React.FC = () => {
                 </div>
 
                 {/* Coupon Access Toggle styled as beautiful frosted metal */}
-                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8">
+                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-8">
                    <button 
                      type="button" 
                      onClick={() => setShowOffersInput(!showOffersInput)}

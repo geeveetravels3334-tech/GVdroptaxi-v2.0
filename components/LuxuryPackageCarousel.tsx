@@ -191,14 +191,14 @@ const LuxuryPackageCarousel: React.FC<LuxuryPackageCarouselProps> = ({ onSelectP
 
                     {/* Pricing Display with Gold Gradient */}
                     <div className="mb-6 p-4 rounded-2xl bg-white/[0.02] border border-white/5 group-hover:border-[#D4AF37]/15 transition-colors">
-                      <span className="block text-[8px] font-black uppercase tracking-[0.25em] text-slate-400 mb-1 font-mono">
+                      <span className="block text-[7px] md:text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1 font-mono truncate">
                         Approximate Tariff Estimate
                       </span>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl md:text-3xl font-bold font-serif text-[#FCF6BA] tracking-tight group-hover:text-white transition-colors">
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className="text-xl md:text-3xl font-bold font-serif text-[#FCF6BA] tracking-tight group-hover:text-white transition-colors">
                           {details?.price?.replace('Starts at ', '') || '₹3,250'}
                         </span>
-                        <span className="text-[8px] uppercase tracking-wider text-slate-400 font-mono font-black">
+                        <span className="text-[7px] md:text-[8px] uppercase tracking-wider text-slate-400 font-mono font-black shrink-0">
                           / base run
                         </span>
                       </div>
@@ -208,30 +208,30 @@ const LuxuryPackageCarousel: React.FC<LuxuryPackageCarouselProps> = ({ onSelectP
                     <div className="space-y-3 flex-grow justify-end flex flex-col mb-6">
                       
                       {/* Duration */}
-                      <div className="flex justify-between items-center text-[10px] md:text-xs">
-                        <span className="text-slate-400 font-semibold flex items-center gap-1.5">
+                      <div className="flex justify-between items-start gap-2 text-[9px] md:text-xs">
+                        <span className="text-slate-400 font-semibold flex items-center gap-1.5 shrink-0 mt-0.5">
                           <Clock size={12} className="text-[#D4AF37]" />
                           Duration Limit
                         </span>
-                        <span className="text-white font-bold">{details?.duration || '1 Day'}</span>
+                        <span className="text-white font-bold text-right leading-tight">{details?.duration || '1 Day'}</span>
                       </div>
 
                       {/* KM Included */}
-                      <div className="flex justify-between items-center text-[10px] md:text-xs">
-                        <span className="text-slate-400 font-semibold flex items-center gap-1.5">
+                      <div className="flex justify-between items-start gap-2 text-[9px] md:text-xs">
+                        <span className="text-slate-400 font-semibold flex items-center gap-1.5 shrink-0 mt-0.5">
                           <Map size={12} className="text-[#D4AF37]" />
                           Coverage Included
                         </span>
-                        <span className="text-white font-bold">{details?.kmsIncluded || '250 KMs'}</span>
+                        <span className="text-white font-bold text-right leading-tight">{details?.kmsIncluded || '250 KMs'}</span>
                       </div>
 
                       {/* Driver Batta */}
-                      <div className="flex justify-between items-center text-[10px] md:text-xs">
-                        <span className="text-slate-400 font-semibold flex items-center gap-1.5">
+                      <div className="flex justify-between items-start gap-2 text-[9px] md:text-xs">
+                        <span className="text-slate-400 font-semibold flex items-center gap-1.5 shrink-0 mt-0.5">
                           <Compass size={12} className="text-[#D4AF37]" />
                           Chauffeur Batta
                         </span>
-                        <span className="text-[#D4AF37] font-bold uppercase tracking-wider">
+                        <span className="text-[#D4AF37] font-bold uppercase tracking-wider text-right leading-tight">
                           {details?.driverBatta || 'Inclusive'}
                         </span>
                       </div>

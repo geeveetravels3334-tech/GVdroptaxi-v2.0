@@ -76,7 +76,14 @@ const Services: React.FC = () => {
         {services.map((s, i) => (
           <div 
             key={i} 
-            className="group relative h-full glass-card p-5 md:p-8 rounded-3xl premium-hover-lift hover:bg-slate-50/50 dark:hover:bg-white/5 hover:border-[#D4AF37]/45 shadow-2xl cursor-pointer overflow-hidden flex flex-col luxury-click"
+            onClick={() => {
+              const tariffSection = document.getElementById('tariff');
+              if (tariffSection) {
+                 const y = tariffSection.getBoundingClientRect().top + window.scrollY - 80;
+                 window.scrollTo({top: y, behavior: 'smooth'});
+              }
+            }}
+            className="group relative h-full glass-card p-5 md:p-8 rounded-3xl premium-hover-lift hover:bg-slate-50/50 dark:hover:bg-white/5 hover:border-[#D4AF37]/45 shadow-2xl cursor-pointer overflow-hidden flex flex-col luxury-click select-none"
           >
             {s.popular && (
               <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-[#D4AF37]/10 text-[#D4AF37] text-[6px] md:text-[8px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.3em] z-20 border border-[#D4AF37]/20 backdrop-blur-md">
@@ -90,8 +97,8 @@ const Services: React.FC = () => {
             {/* Hover Glow Effect */}
             <div className="absolute -right-24 -bottom-24 w-80 h-80 bg-[#D4AF37]/5 rounded-full blur-[100px] group-hover:bg-[#D4AF37]/15 transition-all duration-700 pointer-events-none"></div>
 
-            <div className="bg-[#D4AF37]/10 text-[#D4AF37] w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[1.5rem] flex items-center justify-center mb-6 md:mb-10 shadow-2xl group-hover:rotate-6 transition-all duration-500 border border-[#D4AF37]/20 relative z-10 scale-105 group-hover:bg-[#D4AF37] group-hover:text-[#0B0F1A] group-hover:shadow-[#D4AF37]/40">
-              <div className="icon-hover-pulse transition-transform duration-500 scale-75 md:scale-90">
+            <div className="bg-[#D4AF37]/10 text-[#D4AF37] w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[1.5rem] flex items-center justify-center mb-6 md:mb-10 shadow-2xl group-hover:rotate-6 transition-all duration-300 border border-[#D4AF37]/20 relative z-10 scale-105 group-hover:bg-[#D4AF37] group-hover:text-[#0B0F1A] group-hover:shadow-[#D4AF37]/40">
+              <div className="transition-transform duration-300 scale-75 md:scale-90">
                 {s.icon}
               </div>
             </div>
@@ -103,15 +110,14 @@ const Services: React.FC = () => {
               {s.desc}
             </p>
             
-            <button 
-              onClick={() => window.location.href = `tel:${CONTACT_NUMBER}`}
-              className="group/btn flex items-center justify-between w-full text-[7px] md:text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.3em] transition-all relative z-10"
+            <div 
+              className="group/btn flex items-center justify-between gap-1 w-full text-[8px] md:text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.2em] md:tracking-[0.3em] transition-all relative z-10 mt-auto"
             >
-              <span>Initialize Reserve</span>
-              <div className="bg-white/5 text-[#D4AF37] p-2 md:p-3 rounded-lg md:rounded-xl group-hover/btn:bg-[#D4AF37] group-hover/btn:text-[#0B0F1A] transition-all duration-500 shadow-xl border border-white/5">
-                <ArrowUpRight size={16} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform duration-500" />
+              <span className="truncate">Reserve</span>
+              <div className="bg-white/5 text-[#D4AF37] p-1.5 md:p-3 rounded-lg md:rounded-xl group-hover/btn:bg-[#D4AF37] group-hover/btn:text-[#0B0F1A] transition-all duration-500 shadow-xl border border-white/5 shrink-0">
+                <ArrowUpRight size={14} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform duration-500 md:w-[16px] md:h-[16px]" />
               </div>
-            </button>
+            </div>
           </div>
         ))}
       </div>
