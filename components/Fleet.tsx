@@ -122,7 +122,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => {
 
 const Fleet: React.FC = () => {
   const { language, t, fontClass } = useLanguage();
-  const { vehicles, loading } = usePricing();
+  const { vehicles } = usePricing();
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -139,17 +139,8 @@ const Fleet: React.FC = () => {
     activeFilter === 'All' ? vehicles : vehicles.filter(v => v.type === activeFilter)
   ), [activeFilter, vehicles]);
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 max-w-7xl py-24 md:py-48 flex flex-col items-center justify-center bg-transparent">
-         <Loader2 size={48} className="animate-spin text-[#D4AF37] mb-8" />
-         <p className="text-xl font-black text-[#9CA3AF] uppercase tracking-[0.5em]">Observing Fleet...</p>
-      </div>
-    );
-  }
-
   return (
-    <section id="fleet" className="relative transition-colors duration-1000 py-32 md:py-48 bg-transparent overflow-hidden">
+    <section id="fleet" className="relative transition-colors duration-1000 py-16 md:py-32 bg-transparent overflow-hidden">
       {/* Cinematic Lighting Refraction */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-geevee-orange/10 via-transparent to-transparent blur-[120px] opacity-40"></div>

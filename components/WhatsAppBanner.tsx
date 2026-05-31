@@ -10,7 +10,7 @@ const WhatsAppBanner: React.FC = () => {
     const { fontClass } = useLanguage();
     
     return (
-        <section className="py-20 md:py-32 container mx-auto px-6 max-w-7xl">
+        <section className="py-12 md:py-32 container mx-auto px-6 max-w-7xl">
         <div className="bg-[#25D366] rounded-[2.5rem] md:rounded-[4rem] p-12 md:p-24 relative overflow-hidden shadow-[0_40px_120px_-20px_rgba(37,211,102,0.3)] group border border-white/10">
             <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform duration-1000 pointer-events-none">
                 <MessageSquare size={400} />

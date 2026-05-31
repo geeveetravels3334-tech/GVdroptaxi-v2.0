@@ -12,7 +12,7 @@ const TourPackagesSection: React.FC<TourPackagesSectionProps> = ({ onSelectPacka
   const { t, fontClass } = useLanguage();
   
   return (
-    <section id="packages" className="relative overflow-hidden transition-colors duration-1000 py-24 md:py-36 bg-transparent">
+    <section id="packages" className="relative overflow-hidden transition-colors duration-1000 py-16 md:py-36 bg-transparent">
       {/* Cinematic Lighting Refraction */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent blur-[120px] animate-pulse"></div>

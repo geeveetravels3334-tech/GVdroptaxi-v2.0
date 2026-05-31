@@ -30,7 +30,7 @@ const AirportTransfers: React.FC<AirportTransfersProps> = ({ id }) => {
   ];
 
   return (
-    <div id={id} className="container mx-auto px-4 max-w-7xl py-20 md:py-32">
+    <div id={id} className="container mx-auto px-4 max-w-7xl py-12 md:py-32">
       <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] overflow-hidden relative shadow-2xl border border-white/5">
         <div className="absolute top-0 right-0 w-full h-full opacity-[0.05] pointer-events-none">
            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
@@ -40,7 +40,7 @@ const AirportTransfers: React.FC<AirportTransfersProps> = ({ id }) => {
 
         <div className="absolute -left-20 -top-20 w-96 h-96 bg-geevee-orange/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-        <div className="relative z-10 flex flex-col items-center text-center py-16 md:py-24 px-6 md:px-12">
+        <div className="relative z-10 flex flex-col items-center text-center py-10 md:py-24 px-6 md:px-12">
           <div className="w-full max-w-5xl text-white">
             <div className={`inline-flex items-center gap-3 bg-white/5 border border-white/10 text-geevee-orange px-6 py-2 rounded-full text-[10px] font-bold tracking-[0.2em] mb-10 uppercase backdrop-blur-md shadow-sm ${fontClass}`}>
               <Plane size={16} />

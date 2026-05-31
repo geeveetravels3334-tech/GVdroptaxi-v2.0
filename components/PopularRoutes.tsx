@@ -18,7 +18,7 @@ const PopularRoutes: React.FC<PopularRoutesProps> = ({ id }) => {
   };
 
   return (
-    <section id={id} className="relative py-32 md:py-48 bg-transparent overflow-hidden">
+    <section id={id} className="relative py-16 md:py-32 bg-transparent overflow-hidden">
       {/* Decorative Light Strands */}
       <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
         <div className="absolute top-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent"></div>

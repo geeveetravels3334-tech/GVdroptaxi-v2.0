@@ -88,7 +88,7 @@ const FloatingAIButton: React.FC = () => {
   };
 
   return (
-    <div className={`fixed bottom-6 right-6 z-[100] flex flex-col items-end ${fontClass}`}>
+    <div className={`fixed bottom-6 right-6 z-[100] flex flex-col items-end hide-on-keyboard-mobile ${fontClass}`}>
       {/* Chat Window */}
       {isOpen && (
         <div className="mb-6 w-[350px] md:w-[480px] h-[700px] bg-gradient-to-b from-[#0C1E38]/95 via-[#040812]/98 to-[#040812] backdrop-blur-3xl rounded-[2.5rem] shadow-[0_45px_135px_rgba(0,0,0,0.85)] border border-[#D4AF37]/25 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-500">

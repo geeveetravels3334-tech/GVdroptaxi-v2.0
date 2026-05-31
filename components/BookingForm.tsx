@@ -628,27 +628,25 @@ const BookingForm: React.FC = () => {
 
     // 3. TRIGGER ACTIONS (Instant for user)
     console.log("WHATSAPP REDIRECT");
-    window.open(waUrl, '_blank');
     setIsSuccess(true);
+    setTimeout(() => {
+      window.open(waUrl, '_blank');
+    }, 150);
   };
 
   if (isSuccess) return (
-    <div className="bg-[#0B0F1A] border border-[#D4AF37]/20 rounded-[2.5rem] md:rounded-[3.5rem] p-8 sm:p-16 md:p-24 text-center shadow-[0_24px_64px_-16px_rgba(0,0,0,0.6)] max-w-5xl mx-auto animate-in zoom-in duration-500 relative overflow-hidden">
-      {/* Cinematic Lighting Refraction & Sunset Glow Backlight */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/10 via-transparent to-transparent opacity-40 pointer-events-none z-0"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#D4AF37]/15 via-transparent to-transparent opacity-80 mix-blend-color-dodge z-0 animate-slow-pulse pointer-events-none"></div>
-
+    <div className="bg-[#0B0F1A] border border-[#D4AF37]/20 rounded-[2.5rem] md:rounded-[3.5rem] p-6 sm:p-12 md:p-24 text-center shadow-[0_24px_64px_-16px_rgba(0,0,0,0.6)] max-w-4xl mx-auto transform-gpu relative overflow-hidden">
       <div className="relative z-10">
-        <div className="w-28 h-28 bg-[#D4AF37]/10 text-[#D4AF37] rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-[#D4AF37]/25 shadow-[0_15px_30px_rgba(212,175,55,0.15)] animate-[pulse_2s_infinite]">
-          <CheckCircle2 size={56} />
+        <div className="w-20 h-20 md:w-28 md:h-28 bg-[#D4AF37]/10 text-[#D4AF37] rounded-2xl flex items-center justify-center mx-auto mb-8 border border-[#D4AF37]/25 transform-gpu">
+          <CheckCircle2 size={48} />
         </div>
-        <h2 className="text-3xl md:text-5xl font-normal text-white mb-6 tracking-tight font-serif italic" style={{ fontFamily: 'var(--font-serif)' }}>
-          Booking Confirmed <span className="text-luxury-gold-soft italic font-normal">Successfully</span>
+        <h2 className="text-2xl md:text-5xl font-normal text-white mb-4 md:mb-6 tracking-tight font-serif italic" style={{ fontFamily: 'var(--font-serif)' }}>
+          Booking Confirmed <span className="text-[#D4AF37] italic font-normal">Successfully</span>
         </h2>
-        <div className="inline-block bg-white/5 border border-white/10 px-6 py-2.5 rounded-xl mb-8">
-           <p className="text-[#D4AF37] font-mono font-bold tracking-widest text-xs uppercase">Booking ID: <span className="text-white font-sans">{bookingId}</span></p>
+        <div className="inline-block bg-white/5 border border-white/10 px-4 py-2 rounded-xl mb-6">
+           <p className="text-[#D4AF37] font-mono font-bold tracking-widest text-[10px] md:text-xs uppercase">Booking ID: <span className="text-white font-sans">{bookingId}</span></p>
         </div>
-        <p className="text-[#D1D5DB] text-xl font-medium max-w-2xl mx-auto mb-12 leading-relaxed">
+        <p className="text-slate-300 text-sm md:text-xl font-medium max-w-2xl mx-auto mb-10 leading-relaxed px-4">
           {t.booking.successDesc}
         </p>
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">

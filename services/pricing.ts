@@ -133,8 +133,12 @@ export const PricingService = {
       });
 
       return vehicles;
-    } catch (error) {
-      console.error('Error fetching vehicles:', error);
+    } catch (error: any) {
+      if (error?.message?.includes('offline') || error?.code === 'unavailable') {
+        console.warn('Firestore is offline or unavailable. Using default vehicles.');
+      } else {
+        console.warn('Error fetching vehicles, using defaults:', error);
+      }
       return DETAILED_VEHICLES; // Standard fallback without throwing
     }
   },
@@ -162,8 +166,12 @@ export const PricingService = {
       }
       
       return snapshot.docs.map(doc => doc.data() as PackagePrice);
-    } catch (error) {
-      console.error('Error fetching package prices:', error);
+    } catch (error: any) {
+      if (error?.message?.includes('offline') || error?.code === 'unavailable') {
+        console.warn('Firestore is offline or unavailable. Using default package prices.');
+      } else {
+        console.warn('Error fetching package prices, using defaults:', error);
+      }
       return DEFAULT_PACKAGE_PRICES; // Standard fallback
     }
   },
@@ -203,8 +211,12 @@ export const PricingService = {
       }
       
       return snapshot.data() as ExtraCharges;
-    } catch (error) {
-      console.error('Error fetching extra charges:', error);
+    } catch (error: any) {
+      if (error?.message?.includes('offline') || error?.code === 'unavailable') {
+        console.warn('Firestore is offline or unavailable. Using default extra charges.');
+      } else {
+        console.warn('Could not fetch extra charges from Firestore. Using default.', error);
+      }
       return DEFAULT_EXTRA_CHARGES; // Standard fallback
     }
   },

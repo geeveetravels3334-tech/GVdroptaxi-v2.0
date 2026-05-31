@@ -35,7 +35,7 @@ const WhyChooseUs: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 max-w-7xl py-20 md:py-32">
+    <div className="container mx-auto px-4 max-w-7xl py-12 md:py-32">
       <div className="glass-card rounded-[3rem] p-8 md:p-20 relative overflow-hidden group border-[#D4AF37]/20">
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
            <div className="absolute top-[-20%] left-[-20%] w-[120%] h-[120%] bg-gradient-to-br from-[#D4AF37]/10 to-transparent dark:from-[#D4AF37]/5 dark:to-transparent rounded-full blur-[150px] transition-all duration-[3000ms] opacity-70"></div>

@@ -12,16 +12,7 @@ interface PricingTableProps {
 const PricingTable: React.FC<PricingTableProps> = ({ id }) => {
   const [activeTab, setActiveTab] = useState<'local' | 'outstation' | 'calculator'>('calculator');
   const { language, t, fontClass } = useLanguage();
-  const { vehicles, extraCharges, loading } = usePricing();
-
-  if (loading) {
-    return (
-      <div id={id} className="container mx-auto px-4 max-w-7xl py-24 flex flex-col items-center justify-center">
-        <Loader2 size={48} className="animate-spin text-[#D4AF37] mb-8" />
-        <p className="text-sm font-black uppercase tracking-[0.4em] text-[#9CA3AF]">Syncing Tariff Matrix...</p>
-      </div>
-    );
-  }
+  const { vehicles, extraCharges } = usePricing();
 
   return (
     <div id={id} className="container mx-auto px-4 max-w-7xl">

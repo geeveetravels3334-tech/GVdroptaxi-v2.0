@@ -101,7 +101,7 @@ const LiveBookingNotification: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[90] max-w-[90vw] w-[380px] pointer-events-none select-none">
+    <div className="fixed bottom-6 right-6 z-[90] max-w-[90vw] w-[380px] pointer-events-none select-none hide-on-keyboard-mobile">
       <AnimatePresence mode="wait">
         {visible && currentActivity && (
           <motion.div

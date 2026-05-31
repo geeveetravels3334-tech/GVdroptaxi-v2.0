@@ -21,10 +21,6 @@
   --color-luxury-card: #1A2234;
   --color-pearl-white: #F8FAFC;
 
-  /* CONTRAST OVERRIDES FOR ENHANCED ACCESSIBILITY ON DARK BACKGROUNDS */
-  --color-slate-500: #94A3B8; /* Map 500 to 400 */
-  --color-slate-400: #CBD5E1; /* Map 400 to 300 */
-
   /* ALIASES FOR COMPATIBILITY */
   --color-geevee-gold: var(--color-luxury-gold); 
   --color-geevee-dark: var(--color-luxury-dark);
@@ -143,8 +139,20 @@
 }
 
 @layer components {
+  @media (max-width: 768px) {
+    body:has(input:focus, textarea:focus, select:focus) .hide-on-keyboard-mobile {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+      transform: translateY(100%) !important;
+    }
+  }
+
   .luxury-text-gradient {
-    @apply bg-gradient-to-br from-white via-[#D4AF37] to-[#B38E22] bg-clip-text text-transparent drop-shadow-sm;
+    @apply bg-gradient-to-br from-[#B38E22] via-[#D4AF37] to-[#8c5e15] bg-clip-text text-transparent drop-shadow-sm;
+  }
+  .dark .luxury-text-gradient {
+    @apply bg-gradient-to-br from-white via-[#D4AF37] to-[#B38E22] bg-clip-text text-transparent;
   }
 
   :root {

@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { ExtendedVehicle } from '../constants.tsx';
+import { ExtendedVehicle, DETAILED_VEHICLES } from '../constants.tsx';
 import { PricingService, ExtraCharges, PackagePrice } from '../services/pricing.ts';
 
 interface PricingContextType {
@@ -17,10 +17,10 @@ interface PricingContextType {
 const PricingContext = createContext<PricingContextType | undefined>(undefined);
 
 export const PricingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [vehicles, setVehicles] = useState<ExtendedVehicle[]>([]);
+  const [vehicles, setVehicles] = useState<ExtendedVehicle[]>(DETAILED_VEHICLES);
   const [extraCharges, setExtraCharges] = useState<ExtraCharges | null>(null);
   const [packagePrices, setPackagePrices] = useState<PackagePrice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // start as false so we don't block render
 
   const fetchData = useCallback(async () => {
     setLoading(true);
