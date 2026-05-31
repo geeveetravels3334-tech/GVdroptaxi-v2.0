@@ -22,6 +22,7 @@ const Hero: React.FC = () => {
           alt="Luxury Innova Crysta driving down ECR road at golden sunset" 
           className="w-full h-full object-cover brightness-95 contrast-[1.05] saturate-100"
           containerClassName="w-full h-full"
+          priority={true}
         />
         {/* Deep Navy Blue Overlay - Darker at bottom for text, clearer center */}
 
@@ -66,9 +67,9 @@ const Hero: React.FC = () => {
                   const el = document.getElementById('booking');
                   el ? el.scrollIntoView({ behavior: 'smooth' }) : document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="bg-gradient-to-r from-[#D4AF37] to-[#B89225] hover:from-[#E5BF42] hover:to-[#C69C28] text-[#0A101D] px-8 md:px-10 py-3.5 md:py-4 rounded-full font-semibold text-[10px] md:text-[11px] uppercase tracking-[0.2em] flex items-center gap-3 transition-all duration-300 w-full sm:w-auto justify-center shadow-[0_8px_20px_rgba(212,175,55,0.3)] hover:-translate-y-0.5"
+                className="bg-gradient-to-r from-[#D4AF37] to-[#B89225] hover:from-[#E5BF42] hover:to-[#C69C28] text-[#0A101D] px-8 md:px-10 py-3.5 md:py-4 rounded-[1.5rem] font-bold text-[11px] md:text-xs uppercase tracking-[0.2em] flex items-center gap-3 transition-all duration-300 w-full sm:w-auto justify-center shadow-[0_8px_40px_rgba(212,175,55,0.4)] hover:shadow-[0_12px_50px_rgba(212,175,55,0.6)] hover:-translate-y-1 ring-1 ring-white/20 hover:ring-[#FCF6BA] group"
               >
-                Elite Dispatch <ArrowRight size={16} />
+                Elite Dispatch <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
               
               <button 

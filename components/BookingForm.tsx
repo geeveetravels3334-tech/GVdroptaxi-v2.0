@@ -948,6 +948,19 @@ const BookingForm: React.FC = () => {
                 </div>
               )}
 
+              {/* Trust Indicators for Mobile */}
+              <div className="lg:hidden flex flex-wrap items-center justify-between gap-3 mt-4 mb-2 pt-4 border-t border-white/5 opacity-80 px-2">
+                 <div className="flex items-center gap-1.5 text-[9px] text-[#FCF6BA] font-mono tracking-widest uppercase font-bold">
+                   <CheckCircle2 size={12} className="text-[#D4AF37]" /> Secure
+                 </div>
+                 <div className="flex items-center gap-1.5 text-[9px] text-[#FCF6BA] font-mono tracking-widest uppercase font-bold">
+                   <CheckCircle2 size={12} className="text-[#D4AF37]" /> Verified
+                 </div>
+                 <div className="flex items-center gap-1.5 text-[9px] text-[#FCF6BA] font-mono tracking-widest uppercase font-bold">
+                   <CheckCircle2 size={12} className="text-[#D4AF37]" /> 24/7 Support
+                 </div>
+              </div>
+
               {/* Gold Premium Submit CTA for Mobile */}
               <button 
                 type="submit" 
@@ -1079,6 +1092,19 @@ const BookingForm: React.FC = () => {
                          </div>
                       )}
                       
+                      {/* Trust Indicators */}
+                      <div className="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-white/5 opacity-80">
+                         <div className="flex items-center gap-1.5 text-[9px] text-[#FCF6BA] font-mono tracking-widest uppercase font-bold">
+                           <CheckCircle2 size={12} className="text-[#D4AF37]" /> Secure Booking
+                         </div>
+                         <div className="flex items-center gap-1.5 text-[9px] text-[#FCF6BA] font-mono tracking-widest uppercase font-bold">
+                           <CheckCircle2 size={12} className="text-[#D4AF37]" /> Verified Drivers
+                         </div>
+                         <div className="flex items-center gap-1.5 text-[9px] text-[#FCF6BA] font-mono tracking-widest uppercase font-bold">
+                           <CheckCircle2 size={12} className="text-[#D4AF37]" /> 24/7 Support
+                         </div>
+                      </div>
+
                       {/* Premium Gold CTA for Desktop */}
                       <button 
                         type="submit"

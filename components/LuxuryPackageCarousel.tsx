@@ -104,7 +104,7 @@ const LuxuryPackageCarousel: React.FC<LuxuryPackageCarouselProps> = ({ onSelectP
       
       {/* Sliding chassis track viewport */}
       <div 
-        className="relative overflow-hidden rounded-[2.5rem] p-1"
+        className="relative overflow-hidden rounded-[2.5rem] p-1 touch-pan-y"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}

@@ -12,6 +12,7 @@ interface OptimizedImageProps {
   aspectRatio?: string;
   objectFit?: "cover" | "contain";
   objectPosition?: string;
+  priority?: boolean;
 }
 
 const RELIABLE_FALLBACKS = [
@@ -29,7 +30,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   containerClassName = "relative overflow-hidden bg-slate-100 dark:bg-slate-900/50",
   aspectRatio,
   objectFit = "cover",
-  objectPosition = "center"
+  objectPosition = "center",
+  priority = false
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -112,7 +114,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           alt=""
           onLoad={handleLoad}
           onError={handleError}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
           referrerPolicy="no-referrer"
           className="absolute inset-0 w-px h-px opacity-0 pointer-events-none"
           style={{ visibility: 'hidden' }}
@@ -125,7 +127,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           key={displayedSrc}
           src={displayedSrc}
           alt={alt}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
           referrerPolicy="no-referrer"
           className={`w-full h-full transition-opacity duration-300 ease-out ${fitClass} ${className}`}
           style={{ 

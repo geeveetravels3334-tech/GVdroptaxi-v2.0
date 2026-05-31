@@ -7,7 +7,7 @@ import {
   User, Mail, Phone, Save, X, Loader2, Edit2, Sparkles, 
   MapPin, Clock, Calendar, Car, ArrowRight, ShieldCheck, 
   RefreshCw, CheckCircle2, AlertCircle, RefreshCcw, Gift, Copy, Share2,
-  Star, MessageSquare, Send
+  Star, MessageSquare, Send, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ReviewService, Review } from '../services/review.ts';

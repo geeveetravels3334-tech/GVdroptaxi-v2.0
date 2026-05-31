@@ -100,27 +100,27 @@ const AuthModal: React.FC = () => {
         onClick={closeAuthModal}
       ></div>
 
-      <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[3.5rem] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] animate-in zoom-in duration-500 transition-colors border border-white/10">
-        <div className="bg-slate-900 p-12 text-center relative overflow-hidden">
+      <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[3.5rem] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] animate-in zoom-in duration-500 transition-colors border border-white/10 flex flex-col max-h-full">
+        <div className="bg-slate-900 p-8 md:p-12 text-center relative overflow-hidden shrink-0">
           <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
             <Logo className="w-80 h-80 -translate-y-20 translate-x-40 rotate-12" isLight />
           </div>
           <button 
             onClick={closeAuthModal} 
-            className="absolute top-8 right-8 text-white/30 hover:text-white transition-all bg-white/5 hover:bg-white/10 p-2 rounded-xl"
+            className="absolute top-6 right-6 md:top-8 md:right-8 text-white/30 hover:text-white transition-all bg-white/5 hover:bg-white/10 p-2 rounded-xl z-20"
           >
             <X size={24} />
           </button>
           
-          <div className="relative z-10 pt-10">
-            <h3 className="text-4xl font-bold text-white mb-4 tracking-tighter">Elite Member Access</h3>
+          <div className="relative z-10 pt-6 md:pt-10">
+            <h3 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4 tracking-tighter">Elite Member Access</h3>
             <p className="text-geevee-orange text-[10px] font-bold uppercase tracking-[0.3em] opacity-80">
               {mode === 'LOGIN' ? 'Credential Verification Required' : 'Initialize New Account'}
             </p>
           </div>
         </div>
 
-        <div className="p-12 md:p-16">
+        <div className="p-8 md:p-12 lg:p-16 overflow-y-auto premium-scrollbar">
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-3">
               <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2">Secure Electronic Mail</label>

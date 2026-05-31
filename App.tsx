@@ -35,6 +35,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import { PricingProvider } from './contexts/PricingContext.tsx';
 
 import WhatsAppBanner from './components/WhatsAppBanner.tsx';
+import TrustBanner from './components/TrustBanner.tsx';
 
 const LiquidBackground = React.memo(() => (
   <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
@@ -54,9 +55,13 @@ const HomeSections = React.memo(({ onSelectPackage }: { onSelectPackage: (id: st
         <Hero />
       </div>
       
-      <div className="container mx-auto px-4 md:px-8 max-w-7xl py-12 lg:py-24 relative z-20">
+      <div className="container mx-auto px-4 md:px-8 max-w-7xl -mt-20 md:-mt-32 lg:-mt-40 relative z-30 pb-12 lg:pb-24">
         <BookingForm />
       </div>
+
+      <ScrollReveal delay={0.2} duration={0.8} direction="up">
+        <TrustBanner />
+      </ScrollReveal>
 
       <section id="services">
         <ScrollReveal delay={0.2} duration={0.8} direction="up">
